@@ -1,0 +1,890 @@
+[
+ {
+  "id": "bb-dopamine",
+  "category": "brain-behavior",
+  "tags": "\"curiosity\", \"fantasy\"",
+  "stage": "early"
+ },
+ {
+  "id": "bb-sensitization",
+  "category": "brain-behavior",
+  "tags": "\"memory\", \"images\", \"feeds\"",
+  "stage": "mid"
+ },
+ {
+  "id": "bb-neuroplasticity",
+  "category": "brain-behavior",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "bb-variable-reward",
+  "category": "brain-behavior",
+  "tags": "\"search\", \"aimless\", \"scrolling\", \"curiosity\"",
+  "stage": "early"
+ },
+ {
+  "id": "bb-wanting-liking",
+  "category": "brain-behavior",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "tr-broad",
+  "category": "triggers",
+  "tags": "\"boredom\", \"loneliness\", \"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-combo",
+  "category": "triggers",
+  "tags": "\"late-night\", \"isolation\", \"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-early-detection",
+  "category": "triggers",
+  "tags": "\"aimless\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-curiosity",
+  "category": "triggers",
+  "tags": "\"curiosity\", \"search\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-log-patterns",
+  "category": "triggers",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "ur-wave",
+  "category": "urges",
+  "tags": "\"fantasy\", \"curiosity\"",
+  "stage": "early"
+ },
+ {
+  "id": "ur-not-command",
+  "category": "urges",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "ur-suppression",
+  "category": "urges",
+  "tags": "\"thought\", \"memory\", \"fantasy\"",
+  "stage": "mid"
+ },
+ {
+  "id": "ur-surfing-skill",
+  "category": "urges",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "ur-fade",
+  "category": "urges",
+  "tags": "",
+  "stage": "late"
+ },
+ {
+  "id": "hl-loop",
+  "category": "habit-loops",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "hl-implementation",
+  "category": "habit-loops",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "hl-context",
+  "category": "habit-loops",
+  "tags": "\"phone-habit\", \"bed\", \"isolation\"",
+  "stage": "early"
+ },
+ {
+  "id": "hl-willpower",
+  "category": "habit-loops",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "hl-substitute",
+  "category": "habit-loops",
+  "tags": "\"boredom\", \"aimless\"",
+  "stage": "mid"
+ },
+ {
+  "id": "en-friction",
+  "category": "environment",
+  "tags": "\"phone-habit\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "en-bedroom",
+  "category": "environment",
+  "tags": "\"bed\", \"late-night\", \"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "en-people",
+  "category": "environment",
+  "tags": "\"isolation\", \"loneliness\"",
+  "stage": "early"
+ },
+ {
+  "id": "en-homescreen",
+  "category": "environment",
+  "tags": "\"phone-habit\", \"scrolling\", \"feeds\"",
+  "stage": "early"
+ },
+ {
+  "id": "en-leaving",
+  "category": "environment",
+  "tags": "\"bed\", \"bathroom\", \"isolation\"",
+  "stage": "early"
+ },
+ {
+  "id": "sl-self-regulation",
+  "category": "sleep",
+  "tags": "\"late-night\"",
+  "stage": "early"
+ },
+ {
+  "id": "sl-window",
+  "category": "sleep",
+  "tags": "\"late-night\", \"phone-habit\", \"aimless\"",
+  "stage": "early"
+ },
+ {
+  "id": "sl-phone-out",
+  "category": "sleep",
+  "tags": "\"bed\", \"late-night\", \"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "sl-protocol",
+  "category": "sleep",
+  "tags": "\"late-night\"",
+  "stage": "any"
+ },
+ {
+  "id": "sl-consistency",
+  "category": "sleep",
+  "tags": "\"late-night\"",
+  "stage": "any"
+ },
+ {
+  "id": "st-escape",
+  "category": "stress",
+  "tags": "\"stress\", \"anxiety\"",
+  "stage": "early"
+ },
+ {
+  "id": "st-guilt-loop",
+  "category": "stress",
+  "tags": "\"stress\"",
+  "stage": "mid"
+ },
+ {
+  "id": "st-shrink",
+  "category": "stress",
+  "tags": "\"stress\", \"anxiety\", \"sadness\"",
+  "stage": "any"
+ },
+ {
+  "id": "st-window",
+  "category": "stress",
+  "tags": "\"stress\", \"anger\"",
+  "stage": "mid"
+ },
+ {
+  "id": "st-daily",
+  "category": "stress",
+  "tags": "\"stress\"",
+  "stage": "any"
+ },
+ {
+  "id": "em-labeling",
+  "category": "emotions",
+  "tags": "\"sadness\", \"anger\", \"anxiety\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-halt",
+  "category": "emotions",
+  "tags": "\"boredom\", \"loneliness\", \"stress\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-temporary",
+  "category": "emotions",
+  "tags": "\"anger\", \"sadness\", \"anxiety\"",
+  "stage": "any"
+ },
+ {
+  "id": "em-body",
+  "category": "emotions",
+  "tags": "\"anger\", \"anxiety\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-loneliness",
+  "category": "emotions",
+  "tags": "\"loneliness\", \"isolation\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-trainable",
+  "category": "attention",
+  "tags": "\"scrolling\", \"aimless\"",
+  "stage": "mid"
+ },
+ {
+  "id": "at-residue",
+  "category": "attention",
+  "tags": "\"phone-habit\", \"scrolling\"",
+  "stage": "mid"
+ },
+ {
+  "id": "at-block",
+  "category": "attention",
+  "tags": "\"aimless\", \"boredom\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-boredom",
+  "category": "attention",
+  "tags": "\"boredom\", \"phone-habit\"",
+  "stage": "mid"
+ },
+ {
+  "id": "at-notifications",
+  "category": "attention",
+  "tags": "\"phone-habit\", \"feeds\"",
+  "stage": "early"
+ },
+ {
+  "id": "di-willpower-debate",
+  "category": "discipline",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "di-systems",
+  "category": "discipline",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "di-minimum",
+  "category": "discipline",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "di-consistency",
+  "category": "discipline",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "di-decisions",
+  "category": "discipline",
+  "tags": "\"just-minute\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-loneliness-context",
+  "category": "relationships",
+  "tags": "\"loneliness\", \"isolation\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-one-person",
+  "category": "relationships",
+  "tags": "\"loneliness\", \"isolation\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-trust",
+  "category": "relationships",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "re-emptiness",
+  "category": "relationships",
+  "tags": "\"loneliness\"",
+  "stage": "mid"
+ },
+ {
+  "id": "dg-infinite",
+  "category": "digital",
+  "tags": "\"feeds\", \"scrolling\", \"aimless\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-variable",
+  "category": "digital",
+  "tags": "\"scrolling\", \"feeds\", \"boredom\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-one-minute",
+  "category": "digital",
+  "tags": "\"just-minute\", \"aimless\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-no-notifications",
+  "category": "digital",
+  "tags": "\"phone-habit\", \"feeds\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-no-testing",
+  "category": "digital",
+  "tags": "\"testing\"",
+  "stage": "early"
+ },
+ {
+  "id": "rl-ave",
+  "category": "relapse",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "rl-lapse-relapse",
+  "category": "relapse",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "rl-cut-point",
+  "category": "relapse",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "rl-second-fall",
+  "category": "relapse",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "rl-data",
+  "category": "relapse",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "rl-speed",
+  "category": "relapse",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "sc-not-indulgence",
+  "category": "self-compassion",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "sc-self-criticism",
+  "category": "self-compassion",
+  "tags": "\"sadness\", \"anger\"",
+  "stage": "early"
+ },
+ {
+  "id": "sc-firm-compassionate",
+  "category": "self-compassion",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "sc-friend-voice",
+  "category": "self-compassion",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "sc-repair",
+  "category": "self-compassion",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pr-full-life",
+  "category": "purpose",
+  "tags": "\"boredom\", \"unstructured\"",
+  "stage": "mid"
+ },
+ {
+  "id": "pr-named-project",
+  "category": "purpose",
+  "tags": "\"unstructured\", \"boredom\"",
+  "stage": "early"
+ },
+ {
+  "id": "pr-visible-progress",
+  "category": "purpose",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pr-identity",
+  "category": "purpose",
+  "tags": "",
+  "stage": "late"
+ },
+ {
+  "id": "va-compass",
+  "category": "values",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "va-write",
+  "category": "values",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "va-dissonance",
+  "category": "values",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "va-owned",
+  "category": "values",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "sp-tawbah",
+  "category": "spiritual",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "sp-no-despair",
+  "category": "spiritual",
+  "tags": "\"sadness\"",
+  "stage": "any"
+ },
+ {
+  "id": "sp-prayer-interrupt",
+  "category": "spiritual",
+  "tags": "\"fantasy\", \"memory\", \"stress\"",
+  "stage": "early"
+ },
+ {
+  "id": "sp-dhikr-anchor",
+  "category": "spiritual",
+  "tags": "\"thought\", \"fantasy\", \"anxiety\"",
+  "stage": "any"
+ },
+ {
+  "id": "sp-intention",
+  "category": "spiritual",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "lt-not-linear",
+  "category": "long-term",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "lt-pressure",
+  "category": "long-term",
+  "tags": "\"stress\"",
+  "stage": "late"
+ },
+ {
+  "id": "lt-independence",
+  "category": "long-term",
+  "tags": "",
+  "stage": "late"
+ },
+ {
+  "id": "lt-capital",
+  "category": "long-term",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "lt-identity-keeping",
+  "category": "long-term",
+  "tags": "",
+  "stage": "late"
+ },
+ {
+  "id": "pv-before",
+  "category": "prevention",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "pv-precommitment",
+  "category": "prevention",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pv-ifthen",
+  "category": "prevention",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "pv-review",
+  "category": "prevention",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pv-friction",
+  "category": "prevention",
+  "tags": "\"digital\"",
+  "stage": "early"
+ },
+ {
+  "id": "es-practice-calm",
+  "category": "emergency-skills",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "es-one-step",
+  "category": "emergency-skills",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "es-fewer-choices",
+  "category": "emergency-skills",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "es-first-minute",
+  "category": "emergency-skills",
+  "tags": "\"just-minute\"",
+  "stage": "early"
+ },
+ {
+  "id": "es-after-drop",
+  "category": "emergency-skills",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "di-morning-protocol",
+  "category": "discipline",
+  "tags": "\"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-phone-first-decision",
+  "category": "digital",
+  "tags": "\"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-transition-home",
+  "category": "attention",
+  "tags": "\"aimless\", \"phone-habit\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-between-tasks",
+  "category": "attention",
+  "tags": "\"aimless\", \"scrolling\"",
+  "stage": "any"
+ },
+ {
+  "id": "at-waiting-gaps",
+  "category": "attention",
+  "tags": "\"boredom\", \"phone-habit\", \"aimless\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-post-completion",
+  "category": "attention",
+  "tags": "\"aimless\", \"boredom\"",
+  "stage": "mid"
+ },
+ {
+  "id": "di-open-days",
+  "category": "discipline",
+  "tags": "\"unstructured\", \"late-night\"",
+  "stage": "mid"
+ },
+ {
+  "id": "lt-travel",
+  "category": "long-term",
+  "tags": "\"late-night\", \"phone-habit\"",
+  "stage": "mid"
+ },
+ {
+  "id": "sl-ramadan",
+  "category": "sleep",
+  "tags": "\"late-night\", \"isolation\"",
+  "stage": "any"
+ },
+ {
+  "id": "st-exam-season",
+  "category": "stress",
+  "tags": "\"stress\", \"aimless\"",
+  "stage": "any"
+ },
+ {
+  "id": "lt-app-return",
+  "category": "long-term",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "di-routine-rebuild",
+  "category": "discipline",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "at-boredom-list",
+  "category": "attention",
+  "tags": "\"boredom\", \"aimless\"",
+  "stage": "early"
+ },
+ {
+  "id": "at-boredom-tolerance",
+  "category": "attention",
+  "tags": "\"boredom\", \"phone-habit\"",
+  "stage": "mid"
+ },
+ {
+  "id": "dg-rest-no-phone",
+  "category": "digital",
+  "tags": "\"boredom\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "st-after-hard-day",
+  "category": "stress",
+  "tags": "\"stress\", \"late-night\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-anger",
+  "category": "emotions",
+  "tags": "\"anger\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-sadness-frustration",
+  "category": "emotions",
+  "tags": "\"sadness\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-social-anxiety",
+  "category": "emotions",
+  "tags": "\"anxiety\", \"loneliness\"",
+  "stage": "mid"
+ },
+ {
+  "id": "em-shame-after-slip",
+  "category": "emotions",
+  "tags": "\"sadness\"",
+  "stage": "early"
+ },
+ {
+  "id": "em-unclear-feelings",
+  "category": "emotions",
+  "tags": "\"stress\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-after-hard-talk",
+  "category": "relationships",
+  "tags": "\"anger\", \"stress\"",
+  "stage": "any"
+ },
+ {
+  "id": "re-loneliness-reading",
+  "category": "relationships",
+  "tags": "\"loneliness\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-asking-support",
+  "category": "relationships",
+  "tags": "\"loneliness\"",
+  "stage": "early"
+ },
+ {
+  "id": "re-disclosure",
+  "category": "relationships",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "re-repair-relationship",
+  "category": "relationships",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "dg-content-from-others",
+  "category": "digital",
+  "tags": "\"images\", \"feeds\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-chat-groups",
+  "category": "digital",
+  "tags": "\"feeds\", \"late-night\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-algorithms",
+  "category": "digital",
+  "tags": "\"feeds\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "dg-unintended-exposure",
+  "category": "digital",
+  "tags": "\"images\", \"curiosity\"",
+  "stage": "early"
+ },
+ {
+  "id": "en-click-chain",
+  "category": "environment",
+  "tags": "\"search\", \"just-minute\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-no-testing-decision",
+  "category": "triggers",
+  "tags": "\"testing\"",
+  "stage": "early"
+ },
+ {
+  "id": "tr-map-reading",
+  "category": "triggers",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pv-trigger-to-rule",
+  "category": "prevention",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "pv-weekly-tune",
+  "category": "prevention",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "pv-rule-failed",
+  "category": "prevention",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "ur-intensity-proximity",
+  "category": "urges",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "lt-progress-reading",
+  "category": "long-term",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "rl-calm-review",
+  "category": "relapse",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "rl-first-hour",
+  "category": "relapse",
+  "tags": "",
+  "stage": "early"
+ },
+ {
+  "id": "pv-repeat-pattern",
+  "category": "prevention",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "rl-after-success",
+  "category": "relapse",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "sc-hard-day",
+  "category": "self-compassion",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "di-restart",
+  "category": "discipline",
+  "tags": "",
+  "stage": "any"
+ },
+ {
+  "id": "ur-urge-return",
+  "category": "urges",
+  "tags": "",
+  "stage": "late"
+ },
+ {
+  "id": "at-deep-work",
+  "category": "attention",
+  "tags": "\"phone-habit\", \"scrolling\"",
+  "stage": "early"
+ },
+ {
+  "id": "pr-hobby",
+  "category": "purpose",
+  "tags": "\"boredom\", \"unstructured\"",
+  "stage": "mid"
+ },
+ {
+  "id": "va-day-design",
+  "category": "values",
+  "tags": "",
+  "stage": "mid"
+ },
+ {
+  "id": "re-specialized-help",
+  "category": "relationships",
+  "tags": "\"stress\", \"sadness\"",
+  "stage": "mid"
+ },
+ {
+  "id": "re-first-appointment",
+  "category": "relationships",
+  "tags": "",
+  "stage": "mid"
+ }
+]

@@ -1,0 +1,240 @@
+{
+  "generated": "2026-09-18T23:57:48.847Z",
+  "total": 22,
+  "passed": 22,
+  "failed": 0,
+  "required_of5_files": [
+    "04-urge-input-390.png",
+    "05-urge-result-level2-390.png",
+    "06-urge-result-level5-390.png",
+    "07-emergency-step1-390.png",
+    "08-emergency-step3-countdown-390.png",
+    "09-emergency-step4-reassess-390.png",
+    "17-evening-checkin-390.png",
+    "18b-progress-insight-scale-390.png",
+    "19-urge-input-320.png",
+    "21-evening-checkin-edit-hydrated-320.png"
+  ],
+  "results": [
+    {
+      "file": "01-onboarding-welcome-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a settings or information screen with no visible rating scale, degree number, or level indicator.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "02-home-stable-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a recovery app's daily check-in and settings menu, but no rating scale or degree indicator is visible on this screen.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "03-home-stable-desktop-1280.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a profile and settings page with no visible rating scale or degree indicator.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "04-urge-input-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "٥ ٤ ٣ ٢ ١",
+      "notes": "The app correctly displays the new 1–5 rating scale with numbered buttons.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "05-urge-result-level2-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "من ٥",
+      "notes": "The screen displays the new 1-5 scale correctly with the text 'من ٥' (of 5) and a value of 2.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "06-urge-result-level5-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "5 من 0",
+      "notes": "The screen displays the new 1–5 scale correctly, showing '5 من 0' (likely a readout of 0 out of 5) and explicitly mentioning the 1–10 scale in the description as the old system that was replaced.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "07-emergency-step1-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "درجة المزاج: ٥ من ٥ — أفضـل",
+      "notes": "The screen correctly displays the new 1–5 rating scale with the text 'من ٥' (out of 5).",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "08-emergency-step3-countdown-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "4 من 5",
+      "notes": "The screen correctly displays the new 1–5 rating scale with the readout '4 من 5' and a range of '0 – 5'.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "09-emergency-step4-reassess-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "المقياس: ٥ من – ١",
+      "notes": "The app correctly displays the new 1–5 rating scale in the red button text.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "10-emergency-done-why-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screen shows a success/confirmation message with no rating scale or degree indicator visible.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "11-home-after-handled-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a settings and information screen with no rating scale or degree indicator visible.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "12-home-highrisk-p2-entry-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a warning dialog and a habit tracking card, but no rating scale or degree indicator is visible.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "13-relapse-stop-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The number 10 appears only in the context of a time duration (~10 دقيقة), which is not a rating scale.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "14-relapse-stop-protocol-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "1, 2, 3, 4, 5",
+      "notes": "The screen displays a numbered list of options from 1 to 5, which correctly reflects the new 1–5 rating scale.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "15-relapse-reframe-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a checklist of recovery steps and does not contain any visible rating scale or degree indicator.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "16-home-postrelapse-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a recovery app dashboard with a daily challenge and habit tracking, but no rating scale or degree indicator is visible.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "17-evening-checkin-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "2/5",
+      "notes": "The screen displays a correct 1–5 rating scale with the readout '2/5' and five numbered option buttons.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "18-progress-insights-390.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screen displays statistics and streaks (days and minutes) but does not show any rating scale or degree indicator.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "18b-progress-insight-scale-390.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "من ٥ درجات — ٣ درجة",
+      "notes": "The app correctly displays the new 1–5 scale, showing 'من ٥' (out of 5) and a value of 3.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "19-urge-input-320.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "١ · شدة الرغبة",
+      "notes": "The app correctly displays the new 1–5 rating scale with five numbered option buttons (1–5) for both questions.",
+      "required_of5": true,
+      "pass": true
+    },
+    {
+      "file": "20-home-postrelapse-320.png",
+      "scale_visible": false,
+      "shows_of_5": false,
+      "legacy_10_scale": false,
+      "scale_text_seen": "",
+      "notes": "The screenshot displays a habit tracking screen with no rating scale or degree indicator visible.",
+      "required_of5": false,
+      "pass": true
+    },
+    {
+      "file": "21-evening-checkin-edit-hydrated-320.png",
+      "scale_visible": true,
+      "shows_of_5": true,
+      "legacy_10_scale": false,
+      "scale_text_seen": "3/5",
+      "notes": "The app correctly displays the new 1–5 rating scale with a '3/5' readout and five numbered option buttons.",
+      "required_of5": true,
+      "pass": true
+    }
+  ]
+}
