@@ -7,10 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScreenHeader, InfoNote } from "../shared";
 import { selectDailyDose, doseStatusFor } from "@/lib/app/dose-engine";
 import { dayKey, arabicDate } from "@/lib/app/helpers";
+import { DOSE_EXAMPLES } from "@/data/app/dose-examples";
 import { KNOWLEDGE, CATEGORY_LABELS } from "@/data/app/knowledge";
 import { JOURNEY_STAGES, JOURNEY_DISCLAIMER } from "@/data/app/taxonomy";
 import { computeProgress } from "@/lib/app/progress";
-import { Pill, Check, SkipForward, BookOpen, Lightbulb, Footprints, Anchor } from "lucide-react";
+import { Pill, Check, SkipForward, BookOpen, BookOpenText, Lightbulb, Footprints, Anchor } from "lucide-react";
 
 export function DoseScreen() {
   const data = useAppStore();
@@ -58,6 +59,16 @@ export function DoseScreen() {
         <CardContent className="space-y-4 pt-5">
           <DoseBlock icon={<Lightbulb className="size-4" />} title="اعرف" body={dose.know} />
           <DoseBlock icon={<Anchor className="size-4" />} title="افهم" body={dose.understand} />
+          {/* مثال — approved real-life example, mapped by Stable ID.
+              Content comes from the approved source file (see
+              src/data/app/dose-examples.ts); rendering only — never authored here. */}
+          {DOSE_EXAMPLES[dose.id] && (
+            <DoseBlock
+              icon={<BookOpenText className="size-4" />}
+              title="مثال"
+              body={DOSE_EXAMPLES[dose.id]}
+            />
+          )}
           <DoseBlock icon={<Footprints className="size-4" />} title="افعل" body={dose.act} />
           <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-primary">
