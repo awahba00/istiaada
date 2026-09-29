@@ -7,10 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader, Chip, EmptyState } from "../shared";
+import { DOSE_EXAMPLES } from "@/data/app/dose-examples";
 import { KNOWLEDGE, KNOWLEDGE_CATEGORIES } from "@/data/app/knowledge";
 import { normalizeArabic } from "@/lib/app/helpers";
 import type { KnowledgeItem } from "@/lib/app/types";
-import { LibraryBig, Search, Lightbulb, Anchor, Footprints, BookOpen } from "lucide-react";
+import { LibraryBig, Search, Lightbulb, Anchor, Footprints, BookOpen, BookOpenText } from "lucide-react";
 
 export function KnowledgeScreen() {
   const data = useAppStore();
@@ -125,6 +126,16 @@ export function KnowledgeScreen() {
               <div className="space-y-4">
                 <Block icon={<Lightbulb className="size-4" />} title="اعرف" body={selected.know} />
                 <Block icon={<Anchor className="size-4" />} title="افهم" body={selected.understand} />
+                {/* مثال — approved real-life example, mapped by Stable ID.
+                    Content comes from the approved source file (see
+                    src/data/app/dose-examples.ts); rendering only — never authored here. */}
+                {DOSE_EXAMPLES[selected.id] && (
+                  <Block
+                    icon={<BookOpenText className="size-4" />}
+                    title="مثال"
+                    body={DOSE_EXAMPLES[selected.id]}
+                  />
+                )}
                 <Block icon={<Footprints className="size-4" />} title="افعل" body={selected.act} />
                 <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
                   <div className="text-sm font-bold text-primary">تذكّر</div>
