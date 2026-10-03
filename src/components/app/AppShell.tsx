@@ -50,8 +50,8 @@ export const NAV_ITEMS: {
   { id: "trigger-map", label: "خريطة المحفزات", desc: "أنماط سجلك ونقطة التوقف الأبكر", icon: Radar },
   { id: "relapse", label: "توقّف هنا", desc: "حصلت زَلّة؟ إيقاف فوري ثم فهم هادئ", icon: LifeBuoy },
   { id: "prevention", label: "خطة الوقاية", desc: "قواعد «إذا… إذن» وحمايتك", icon: ShieldCheck },
-  { id: "progress", label: "التقدم", desc: "مؤشرات حقيقية بلا نسب زائفة", icon: TrendingUp },
-  { id: "values", label: "القيم والروحانيات", desc: "لماذا أفعل هذا؟", icon: Heart },
+  { id: "progress", label: "التقدم", desc: "مؤشرات حقيقية من غير نسب زائفة", icon: TrendingUp },
+  { id: "values", label: "القيم والروحانيات", desc: "ليه بعمل ده؟", icon: Heart },
   { id: "knowledge", label: "قاعدة المعرفة", desc: "قراءة هادئة — للوقت الهادي", icon: LibraryBig },
   { id: "settings", label: "الإعدادات", desc: "خصوصيتك وبياناتك", icon: Settings },
 ];
@@ -88,7 +88,7 @@ function EmergencyButton({
       )}
     >
       <Siren className={compact ? "size-4" : "size-5"} />
-      تدخّل الآن
+      تدخّل دلوقتي
     </button>
   );
 }
@@ -149,7 +149,7 @@ export function AppShell() {
           ))}
         </nav>
         <div className="border-t border-border px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">
-          بياناتك على جهازك فقط — لا حسابات ولا خوادم.
+          بياناتك على جهازك بس — من غير حسابات ولا خوادم.
         </div>
       </aside>
 
@@ -206,11 +206,11 @@ export function AppShell() {
             <button
               type="button"
               onClick={openEmergency}
-              aria-label="تدخل الآن — وضع الطوارئ"
+              aria-label="تدخل دلوقتي — وضع الطوارئ"
               className="emergency-pulse -mt-6 flex size-16 flex-col items-center justify-center gap-0.5 rounded-full bg-destructive text-destructive-foreground shadow-xl transition-transform active:scale-90"
             >
               <Siren className="size-6" />
-              <span className="text-[9px] font-bold">تدخل الآن</span>
+              <span className="text-[9px] font-bold">تدخل دلوقتي</span>
             </button>
           </div>
 
@@ -286,9 +286,9 @@ export function AppShell() {
               className="flex flex-col gap-1.5 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-start"
             >
               <Siren className="size-5 text-destructive" />
-              <span className="text-sm font-bold text-destructive">تدخّل الآن</span>
+              <span className="text-sm font-bold text-destructive">تدخّل دلوقتي</span>
               <span className="text-[11px] leading-snug text-muted-foreground">
-                لحظة خطر؟ وضع الطوارئ — خطوات مباشرة بلا تشتيت
+                لحظة خطر؟ وضع الطوارئ — خطوات مباشرة من غير تشتيت
               </span>
             </button>
           </div>

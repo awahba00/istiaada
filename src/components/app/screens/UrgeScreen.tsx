@@ -157,27 +157,27 @@ export function UrgeScreen() {
           label="١ · شدة الرغبة"
           value={urge}
           onChange={setUrge}
-          low="هادئة تقريبًا"
+          low="هادية تقريبًا"
           high="أقصى ما أعرفه"
         />
         <NumberScale
-          label="٢ · مدى قربك من التنفيذ"
+          label="٢ · قد إيه إنت قريب من التنفيذ"
           value={proximity}
           onChange={setProximity}
-          low="بعيد تمامًا"
+          low="بعيد خالص"
           high="على وشك التنفيذ"
         />
         <NumberScale
-          label="٣ · فقدان السيطرة"
+          label="٣ · السيطرة على نفسك"
           value={control}
           onChange={setControl}
           low="سيطرتي كاملة"
-          high="بالكاد أقدر أوقف نفسي"
+          high="بالعافية أقدر أوقف نفسي"
         />
 
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">السياق الآن (اختياري لكنه مفيد جدًا)</div>
+            <div className="text-sm font-semibold">السياق دلوقتي (اختياري لكنه مفيد جدًا)</div>
             <div className="flex flex-wrap gap-2">
               {contextToggles.map((t) => (
                 <button
@@ -270,7 +270,7 @@ export function UrgeScreen() {
         {/* I7: the number is a self-reported indicator — say so right where
             the number is shown, in plain words (not jargon). */}
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          الدرجة دي تقدير مبني على إجاباتك الآن على سلم من ١ لـ ٥ — تساعدك تختار
+          الدرجة دي تقدير مبني على إجاباتك دلوقتي على سلم من ١ لـ ٥ — بتساعدك تختار
           خطوتك، ومش قياس طبي ولا تنبؤ مضمون.
         </p>
 
@@ -286,12 +286,12 @@ export function UrgeScreen() {
               <CardContent className="space-y-3 pt-5">
                 <div className="flex items-center gap-2 font-semibold">
                   <Eye className="size-4 text-primary" />
-                  علامات مبكرة تستحق اليقظة
+                  علامات مبكرة تستحق الانتباه
                 </div>
                 <ul className="space-y-1.5 text-sm leading-relaxed text-muted-foreground">
-                  <li>• تذكّر مشاهد أو تطوير خيال</li>
-                  <li>• تصفح بلا هدف أو «نظرة سريعة»</li>
-                  <li>• التقاط الهاتف آليًا وقت الفراغ</li>
+                  <li>• تفتكر مشاهد أو تبدأ تسرح بخيالك</li>
+                  <li>• تتصفح من غير هدف أو تعمل «بصة سريعة»</li>
+                  <li>• تمسك الهاتف بشكل تلقائي وقت الفراغ</li>
                   <li>اختار درجتك في الأسئلة الثلاثة فوق الأول</li>
                 </ul>
                 <Button
@@ -313,7 +313,7 @@ export function UrgeScreen() {
           <div className="space-y-4">
             <InfoNote tone="warning">
               {mode === "interrupt"
-                ? "الرغبة بدأت تقوى — اقطعها الآن وهي لسه صغيرة: خطوة قطع واحدة تكفي غالبًا."
+                ? "الرغبة بدأت تقوى — اقطعها دلوقتي وهي لسه صغيرة: خطوة واحدة غالبًا تكفي."
                 : "قربت من التصرف؟ ما تحللش دلوقتي — ابدأ التدخل فورًا."}
             </InfoNote>
 
@@ -327,7 +327,7 @@ export function UrgeScreen() {
                 >
                   <span className="flex items-center gap-2">
                     <MessageCircleQuestion className="size-4 text-warning" />
-                    صوت التفاوض يهمس؟ افتح الردود الجاهزة
+                    صوت التفاوض بدأ يهمس؟ افتح الردود الجاهزة
                   </span>
                   <ChevronLeft
                     className={`size-4 text-muted-foreground transition-transform ${showAnti ? "-rotate-90" : ""}`}
@@ -350,7 +350,7 @@ export function UrgeScreen() {
             </Card>
 
             <Button size="lg" className="w-full" onClick={pickIntervention}>
-              ابدأ التدخل المقترح الآن
+              ابدأ التدخل المقترح دلوقتي
             </Button>
             <Button
               variant="outline"
@@ -373,7 +373,7 @@ export function UrgeScreen() {
           <div className="space-y-4">
             {mode === "maximum" && (
               <InfoNote tone="danger">
-                <b>• افتكر مشاهد أو تطوير خيال</b> اضغط الزر وابدأ أول خطوة قطع الآن.
+                <b>• افتكر مشاهد أو تطوير خيال</b> اضغط الزر وابدأ أول خطوة قطع دلوقتي.
               </InfoNote>
             )}
             <Button
@@ -389,11 +389,11 @@ export function UrgeScreen() {
               }
             >
               <Siren className="size-6" />
-              تدخّل الآن — وضع الطوارئ
+              تدخّل دلوقتي — وضع الطوارئ
             </Button>
             {mode === "emergency" && (
               <p className="text-center text-sm leading-relaxed text-muted-foreground">
-                سنعرض لك خطوات قليلة وواضحة فقط — كلما ارتفع الخطر قلّت الخيارات.
+                هنعرض لك خطوات قليلة وواضحة بس — كل ما الخطر يعلى، الخيارات تقل.
               </p>
             )}
           </div>
@@ -408,7 +408,7 @@ export function UrgeScreen() {
       <div className="space-y-5">
         <ScreenHeader
           title="الرغبة بدأت بتقوى — اقطعها دلوقتي وهي لسه صغيرة: خطوة قطع واحدة تكفي غالبًا."
-          subtitle="خطوة واحدة فقط — لا تحتاج حل كل شيء الآن."
+          subtitle="خطوة واحدة بس — مش محتاج تحل كل حاجة دلوقتي."
           icon={<Gauge className="size-5" />}
         />
         <InterventionCard iv={intervention} onComplete={() => setPhase("outcome")} />
@@ -417,7 +417,7 @@ export function UrgeScreen() {
           className="w-full text-muted-foreground"
           onClick={() => setPhase("outcome")}
         >
-          تخطي إلى إعادة التقييم
+          تخطّى لإعادة الفحص
         </Button>
       </div>
     );
@@ -442,7 +442,7 @@ export function UrgeScreen() {
           <span>
             <b>ابدأ التدخل المقترح دلوقتي</b>
             <span className="block text-xs font-normal text-muted-foreground">
-              ارجع ليومك — الموجة دي مسجّلة وبتتحسب ليك
+              ارجع ليومك — الموجة دي اتسجلت وبتتحسب ليك
             </span>
           </span>
         </Button>
@@ -454,9 +454,9 @@ export function UrgeScreen() {
         >
           <Siren className="size-5 text-warning" />
           <span>
-            <b>لا، لسه مرتفعة</b>
+            <b>لأ، لسه عالية</b>
             <span className="block text-xs font-normal text-muted-foreground">
-              نجرّب تدخلًا أقوى — ده طبيعي وجزء من النظام
+              نجرب تدخل أقوى — ده طبيعي وجزء من النظام
             </span>
           </span>
         </Button>

@@ -48,8 +48,8 @@ export function TriggerMapScreen() {
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="«المحفز» هو ما بدأ الموجة عادة — الملل، التصفح، التأخير… أنماطك تُرسم من سجلك تلقائيًا مع كل فحص رغبة."
-          subtitle="«المحفز» هو ما بدأ الموجة عادةً — الملل، التصفح، التأخير… أنماطك تُرسم من سجلك تلقائيًا مع كل فحص رغبة."
+          title="«المحفز» هو ما بدأ الموجة عادة — الملل، التصفح، التأخير… أنماطك بتترسم من سجلك تلقائيًا مع كل فحص رغبة."
+          subtitle="«المحفز» هو ما بدأ الموجة عادةً — الملل، التصفح، التأخير… أنماطك بتترسم من سجلك تلقائيًا مع كل فحص رغبة."
           icon={<Radar className="size-5" />}
         />
         <EmptyState
@@ -58,7 +58,7 @@ export function TriggerMapScreen() {
           body="سجّل ٣–٤ فحوصات رغبة (حتى الخفيف منها) وسيبدأ التطبيق برسم أنماطك: أكثر المحفزات، أخطر الأوقات، ونقطة التدخل الأفضل."
         />
         <InfoNote>
-          الغرض ليس تسجيل التاريخ — بل اكتشاف أبكر نقطة تدخل في سلسلتك.
+          الغرض مش تسجيل التاريخ — بل اكتشاف أبكر نقطة تدخل في سلسلتك.
         </InfoNote>
       </div>
     );
@@ -143,7 +143,7 @@ export function TriggerMapScreen() {
           {insights.mostRiskyTime && (
             <p className="text-sm leading-relaxed text-muted-foreground">
               <b>أكثر وقت محتاج حماية:</b> {TIME_BUCKET_LABELS[insights.mostRiskyTime.bucket]} —
-              خطّط له مبكرًا (قواعد «إذا… إذن» وبروتوكول الليل).
+              خطّط له بدري (قواعد «إذا… إذن» وبروتوكول الليل).
             </p>
           )}
         </CardContent>
@@ -187,14 +187,13 @@ export function TriggerMapScreen() {
       )}
       {insights.bestIntervention && (
         <InfoNote tone="success">
-          <b>دي أنماط سلوكية مرصودة من سجلك — وليست تشخيصًا. الهدف العملي: أبكر نقطة تقدر توقف عندها.</b> {insights.bestIntervention.name} (نجح{" "}
-          {insights.bestIntervention.wins} مرة). النظام سيرجّحه تلقائيًا في المقترحات.
+          <b>دي أنماط سلوكية مرصودة من سجلك — ومش تشخيص. الهدف العملي: أبكر نقطة تقدر توقف عندها.</b> {insights.bestIntervention.name} (نجح{" "}
+          {insights.bestIntervention.wins} مرة). النظام هيرجّحه تلقائيًا في المقترحات.
         </InfoNote>
       )}
       <InfoNote tone="info">
         <Scissors className="mb-1 me-1 inline size-4" />
-        هذه أنماط سلوكية مرصودة من سجلك — وليست تشخيصًا. الهدف العملي: أبكر نقطة
-        تقدر توقف عندها.
+        دي أنماط سلوكية مرصودة من سجلك — ومش تشخيص. الهدف العملي: أبكر نقطة تقدر توقف عندها.
       </InfoNote>
     </div>
   );

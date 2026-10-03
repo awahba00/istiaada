@@ -46,7 +46,7 @@ export function InterventionCard({
         <details className="group rounded-xl border border-border bg-muted/40 px-4 py-3">
           <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Info className="size-4" />
-            لماذا يساعد هذا؟
+            ليه التدخل ده بيساعد؟
           </summary>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{iv.whyItHelps}</p>
         </details>
@@ -66,12 +66,12 @@ export function InterventionCard({
 
         {onComplete && (
           <Button onClick={onComplete} className="w-full gap-1.5" size="lg">
-            {iv.durationSec ? "تم — أعد التقييم" : "تم"}
+            {iv.durationSec ? "تم — عيد التقييم" : "تم"}
             <ArrowLeft className="size-4" />
           </Button>
         )}
         <p className="text-center text-xs text-muted-foreground">
-          الخطوة التالية: {iv.nextAction}
+          الخطوة اللي بعدها: {iv.nextAction}
         </p>
       </CardContent>
     </Card>

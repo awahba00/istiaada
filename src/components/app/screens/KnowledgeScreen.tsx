@@ -48,13 +48,13 @@ export function KnowledgeScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title="قاعدة المعرفة"
-        subtitle="بطاقات قصيرة عملية مبنية على فهم السلوك — بلا مبالغة ولا مصطلحات معقدة."
+        subtitle="بطاقات قصيرة وعملية مبنية على فهم السلوك — من غير مبالغة ولا مصطلحات معقدة."
         icon={<LibraryBig className="size-5" />}
       />
       {/* One quiet line teaching WHEN to use this section — and when not
           to: urgent moments have a faster tool (Intervene Now on Home). */}
       <p className="text-center text-xs leading-relaxed text-muted-foreground">
-        للقراءة في الهدوء — وقت الشدة له أداة أسرع: «تدخّل الآن» في الرئيسية.
+        اقراها في الهدوء — وقت الشدة عندك أداة أسرع: «تدخّل دلوقتي» من الرئيسية.
       </p>
 
       <div className="relative">
@@ -83,7 +83,7 @@ export function KnowledgeScreen() {
       {items.length === 0 ? (
         <EmptyState
           icon={<Search className="size-8" />}
-          title="لا نتائج"
+          title="مفيش نتائج"
           body="جرّب كلمة أبسط أو غيّر التصنيف."
         />
       ) : (

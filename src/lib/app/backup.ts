@@ -241,12 +241,12 @@ export function validateBackup(json: string): ValidationResult {
   }
 
   if (!isObj(parsed)) {
-    return { ok: false, error: "الملف ليس نسخة احتياطية من ده التطبيق." };
+    return { ok: false, error: "الملف مش نسخة احتياطية من التطبيق ده." };
   }
 
   const appId = parsed.app;
   if (!isStr(appId) || !(ACCEPTED_APP_IDS as readonly string[]).includes(appId)) {
-    return { ok: false, error: "الملف ليس نسخة احتياطية من هذا التطبيق." };
+    return { ok: false, error: "الملف مش نسخة احتياطية من التطبيق ده." };
   }
 
   // Schema version: explicit field wins; legacy backups fall back to data.version.

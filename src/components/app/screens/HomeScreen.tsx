@@ -145,13 +145,13 @@ export function HomeScreen() {
       3 * 3600000;
 
   const handledAgoLabel = (): string => {
-    if (!lastCheck?.outcomeTs && !lastCheck?.ts) return "من قليل";
+    if (!lastCheck?.outcomeTs && !lastCheck?.ts) return "من شوية";
     const minutes =
       (Date.now() - new Date(lastCheck!.outcomeTs ?? lastCheck!.ts).getTime()) /
       60000;
-    if (minutes < 45) return "من قليل";
-    if (minutes < 110) return "منذ ساعة تقريبًا";
-    return "منذ ساعتين تقريبًا";
+    if (minutes < 45) return "من شوية";
+    if (minutes < 110) return "من حوالي ساعة";
+    return "من حوالي ساعتين";
   };
 
   const metrics = useMemo(() => computeProgress(data), [data]);
@@ -186,16 +186,16 @@ export function HomeScreen() {
         <InfoNote tone="success">
           <b>
             {handledRecently
-              ? `أحسنت — تعاملت مع موجة ${handledAgoLabel()}.`
-              : "أنت مستقر دلوقتي — مش محتاج أي تدخل."}
+              ? `تمام — تعاملت مع موجة ${handledAgoLabel()}.`
+              : "إنت مستقر دلوقتي — مش محتاج أي تدخل."}
           </b>{" "}
           {stableTail}
         </InfoNote>
       )}
       {homeState === "moderate" && (
         <InfoNote tone="warning">
-          <b>انتبه — آخر فحص أظهر رغبة بدأت تبني.</b> مؤشر مش تنبؤ: خطوة قطع
-          صغيرة دلوقتي بتكفي غالبًا قبل ما تكبر.
+          <b>خد بالك — آخر فحص أظهر إن الرغبة بدأت تكبر.</b> المؤشر مش تنبؤ:
+          خطوة قطع صغيرة دلوقتي غالبًا تكفي قبل ما تكبر.
           <div className="mt-3">
             <Button size="sm" onClick={() => navigate("urge")} className="gap-1.5">
               <Gauge className="size-4" />
@@ -208,7 +208,7 @@ export function HomeScreen() {
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 sm:p-5">
           <div className="flex items-center gap-2 font-bold text-destructive">
             <ShieldAlert className="size-5" />
-            درجة حالتك مرتفعة في آخر فحص
+            درجة حالتك عالية في آخر فحص
           </div>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
             اللي محتاجه دلوقتي خطوة قطع واحدة — مش حل شامل.
@@ -222,7 +222,7 @@ export function HomeScreen() {
               className="gap-1.5"
             >
               <Siren className="size-4" />
-              تدخّل الآن
+              تدخّل دلوقتي
             </Button>
             <Button variant="outline" onClick={() => navigate("urge")}>
               عيد الفحص
@@ -250,7 +250,7 @@ export function HomeScreen() {
             بعد اللي حصل — المهم دلوقتي: ما تكمّلش
           </div>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            اللي حصل مش بيمسح اللي اتعلمته — والمراجعة الهادئة تنتظرك لما تهدى.
+            اللي حصل مش بيمسح اللي اتعلمته — والمراجعة الهادئة مستنياك لما تهدى.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button onClick={() => navigate("relapse")} className="gap-1.5">
@@ -277,7 +277,7 @@ export function HomeScreen() {
             </div>
             {doseDoneToday && (
               <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
-                أُنجزت اليوم ✓
+                أنجزت جرعة اليوم ✓
               </span>
             )}
           </div>
@@ -341,7 +341,7 @@ export function HomeScreen() {
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold">
               <TrendingUp className="size-4 text-primary" />
-              لمحة التقدم
+              لمحة عن تقدمك
             </div>
             <button
               type="button"
@@ -354,21 +354,21 @@ export function HomeScreen() {
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <StatTile
-              label="رغبات تعاملت معها"
+              label="رغبات اتعاملت معاها"
               value={String(metrics.urgesHandled)}
               hint={`${metrics.urgesHandled7d} خلال آخر أسبوع`}
               direction={metrics.urgesHandled7d > 0 ? "up" : undefined}
             />
             <StatTile
-              label="تدخلات مبكرة"
+              label="تدخلات بدري"
               value={String(metrics.earlyInterventions)}
-              hint="خلال ٣٠ يومًا"
+              hint="خلال ٣٠ يوم"
               direction={metrics.earlyInterventions > 0 ? "up" : undefined}
             />
             <StatTile
               label="استقرار يومي"
               value={`${metrics.dailyStability}%`}
-              hint="مراجعات مسائية / ١٤ يومًا"
+              hint="مراجعات مسائية / ١٤ يوم"
             />
             <StatTile
               label="وعي بالمحفزات"
@@ -381,7 +381,7 @@ export function HomeScreen() {
       </Card>
 
       <p className="pb-2 text-center text-[11px] leading-relaxed text-muted-foreground">
-        مؤشرات سلوكية للاستخدام الشخصي — ليست تشخيصًا طبيًا ولا نسبة تعافٍ.
+        مؤشرات سلوكية للاستخدام الشخصي — مش تشخيص طبي ولا نسبة تعافٍ.
         <br />
         بياناتك محفوظة على جهازك بس.
       </p>

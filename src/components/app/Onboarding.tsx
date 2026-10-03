@@ -12,37 +12,37 @@ import { PERSONAL_WHY_REASONS } from "@/data/app/taxonomy";
 import type { SupportPreference, UserProfile } from "@/lib/app/types";
 
 const STEP1 = [
-  { id: "change", label: "أريد تغيير سلوك يؤثر على حياتي" },
-  { id: "control", label: "أريد تحكمًا أفضل في الرغبات" },
-  { id: "reduce-porn", label: "أريد تقليل أو إيقاف استخدام الإباحية" },
-  { id: "reduce-compulsive", label: "أريد تقليل سلوك جنسي قهري" },
-  { id: "understand", label: "أريد فهم محفزاتي" },
-  { id: "routine", label: "أريد بناء روتين يومي أقوى" },
-  { id: "values", label: "أريد دعمًا مبنيًا على قيمي/روحانيتي" },
+  { id: "change", label: "عايز أغيّر سلوك مأثر على حياتي" },
+  { id: "control", label: "عايز تحكم أحسن في الرغبات" },
+  { id: "reduce-porn", label: "عايز أقلل أو أوقف استخدام الإباحية" },
+  { id: "reduce-compulsive", label: "عايز أقلل سلوك جنسي قهري" },
+  { id: "understand", label: "عايز أفهم محفزاتي" },
+  { id: "routine", label: "عايز أبني روتين يومي أقوى" },
+  { id: "values", label: "عايز دعم مبني على قيمي وروحانيتي" },
 ];
 
 const STEP2 = [
-  { id: "late-night", label: "الليل المتأخر" },
-  { id: "alone", label: "حين أكون وحدي" },
+  { id: "late-night", label: "وقت متأخر بالليل" },
+  { id: "alone", label: "لما أكون لوحدي" },
   { id: "boredom", label: "الملل" },
   { id: "stress", label: "التوتر والضغط" },
   { id: "emotions", label: "المشاعر الصعبة" },
-  { id: "free-time", label: "وقت فراغ غير منظم" },
-  { id: "device", label: "أثناء استخدام الهاتف/الكمبيوتر" },
+  { id: "free-time", label: "وقت فراغ مش منظم" },
+  { id: "device", label: "وأنا بستخدم الهاتف أو الكمبيوتر" },
   { id: "places", label: "أماكن معينة" },
-  { id: "other", label: "أخرى" },
+  { id: "other", label: "تانية" },
 ];
 
 const STEP3 = [
-  { id: "aimless", label: "تصفح بلا هدف" },
-  { id: "memory", label: "تذكّر شيء ما" },
+  { id: "aimless", label: "تصفح من غير هدف" },
+  { id: "memory", label: "تفتكر حاجة" },
   { id: "fantasy", label: "خيال" },
   { id: "curiosity", label: "فضول" },
-  { id: "discomfort", label: "انزعاج انفعالي" },
+  { id: "discomfort", label: "انزعاج عاطفي" },
   { id: "isolation", label: "انعزال" },
-  { id: "bed", label: "البقاء في السرير" },
+  { id: "bed", label: "تفضل في السرير" },
   { id: "search", label: "بحث" },
-  { id: "other", label: "أخرى" },
+  { id: "other", label: "تاني" },
 ];
 
 const STEP5 = [
@@ -57,11 +57,11 @@ const STEP5 = [
 ];
 
 const STEP6: { id: SupportPreference; label: string }[] = [
-  { id: "science", label: "المحتوى العلمي المبسّط" },
+  { id: "science", label: "محتوى علمي مبسّط" },
   { id: "practical", label: "استراتيجيات عملية مباشرة" },
-  { id: "psychological", label: "توجيه نفسي/سلوكي" },
+  { id: "psychological", label: "توجيه نفسي وسلوكي" },
   { id: "spiritual", label: "تأمل قيمي وروحي" },
-  { id: "mixed", label: "مزيج من كل ذلك" },
+  { id: "mixed", label: "مزيج من كل ده" },
 ];
 
 export function Onboarding() {
@@ -166,7 +166,7 @@ export function Onboarding() {
               <div className="rounded-2xl border border-dashed border-border p-4">
                 <div className="mb-1.5 flex items-center gap-2 font-semibold">
                   <RotateCcw className="size-4 text-primary" />
-                  مش أول مرة تستخدم التطبيق؟ استعد بياناتك
+                  مش أول مرة تستخدم التطبيق؟ استرجع بياناتك
                 </div>
                 <p className="mb-3.5 text-xs leading-relaxed text-muted-foreground">
                   عندك نسخة احتياطية من جهاز تاني؟ استرجعها دلوقتي وهتفتح البيانات مباشرة —
@@ -189,7 +189,7 @@ export function Onboarding() {
         {step === 0 && (
           <StepWrap
             title="إنت بتستخدم التطبيق ليه؟"
-            subtitle="اختر كل ما ينطبق — اختياراتك هنا تخصّص نظامك."
+            subtitle="اختار كل اللي ينطبق — اختياراتك هنا هتساعد في تخصيص النظام ليك."
           >
             <ChipMultiSelect options={STEP1} value={goals} onChange={setGoals} />
           </StepWrap>
@@ -197,7 +197,7 @@ export function Onboarding() {
 
         {step === 1 && (
           <StepWrap
-            title="إمتى تكون الأمور أصعب عادة؟"
+            title="إمتى بتكون الأمور أصعب عادة؟"
             subtitle="تقدر تختار أكثر من خيار."
           >
             <ChipMultiSelect
@@ -211,11 +211,11 @@ export function Onboarding() {
         {step === 2 && (
           <StepWrap
             title="إيه اللي بيحصل عادة قبل السلوك؟"
-            subtitle="اختيارات عامة — لا حاجة لأي تفاصيل صريحة."
+            subtitle="اختارات عامة — مش محتاج تكتب أي تفاصيل صريحة."
           >
             <ChipMultiSelect options={STEP3} value={patterns} onChange={setPatterns} />
             <InfoNote>
-              ما يهمّنا هنا هو النمط العام (تصفح؟ افتكر؟ ملل؟) — لا محتوى بعينه.
+              اللي يهمنا هنا هو النمط العام (تصفح؟ افتكر حاجة؟ ملل؟) — مش محتوى بعينه.
             </InfoNote>
           </StepWrap>
         )}
@@ -228,9 +228,9 @@ export function Onboarding() {
             <div className="space-y-2.5">
               {(
                 [
-                  { id: "yes", label: "نعم، أحتاجه باستمرار", desc: "سنجهّز تدخلات لا تتطلب ترك الجهاز" },
-                  { id: "sometimes", label: "أحيانًا", desc: "سنطلب منك التأكيد وقت الحاجة" },
-                  { id: "no", label: "لا، يمكنني تركه", desc: "سنفضّل تدخلات الابتعاد عن الجهاز" },
+                  { id: "yes", label: "أيوه، محتاجه باستمرار", desc: "هنجهّز تدخلات من غير ما تسيب الجهاز" },
+                  { id: "sometimes", label: "أحيانًا", desc: "هنطلب منك تأكيد وقت الحاجة" },
+                  { id: "no", label: "لأ، أقدر أسيبه", desc: "هنفضّل تدخلات تبعدك عن الجهاز" },
                 ] as const
               ).map((o) => (
                 <button
@@ -253,13 +253,13 @@ export function Onboarding() {
         )}
 
         {step === 4 && (
-          <StepWrap title="إيه اللي عايز تبنيه؟" subtitle="الحياة الممتلئة أقوى درع — اختار أهدافك.">
+          <StepWrap title="إيه اللي عايز تبنيه؟" subtitle="الحياة المليانة أقوى حماية — اختار أهدافك.">
             <ChipMultiSelect options={STEP5} value={buildGoals} onChange={setBuildGoals} />
           </StepWrap>
         )}
 
         {step === 5 && (
-          <StepWrap title="أي نوع من الدعم تحب؟" subtitle="ده هيظهر في اختيار جرعتك اليومية.">
+          <StepWrap title="إيه نوع الدعم اللي تحبه؟" subtitle="ده هيأثر على اختيار الجرعة اليومية.">
             <div className="space-y-2.5">
               {STEP6.map((o) => (
                 <button
@@ -282,8 +282,8 @@ export function Onboarding() {
 
         {step === 6 && (
           <StepWrap
-            title="لماذا أفعل هذا؟"
-            subtitle="اكتب سببك بيدك — أو اختر ما يمثّلك. يظهر لك في اللحظات الصعبة."
+            title="ليه بعمل ده؟"
+            subtitle="اكتب سببك بكلامك أنت — أو اختار اللي يمثّلك. هيظهر لك في اللحظات الصعبة."
           >
             <ChipMultiSelect
               size="sm"
@@ -321,14 +321,14 @@ export function Onboarding() {
                     ? difficultTimes
                         .map((d) => STEP2.find((s) => s.id === d)?.label ?? d)
                         .join("، ")
-                    : "لم تحدد بعد — سيحددها سجلّك مع الوقت"}
+                    : "لسه ما حددتش — سجلّك هيحددها مع الوقت"}
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <Compass className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span>
                   <b>خطة الاستجابة:</b> فحص الرغبة ثلاثي الأبعاد → تدخل مناسب لسياقك →
-                  إعادة تقييم → تعلم.
+                  إعادة تقييم → تعلّم.
                 </span>
               </div>
               <div className="flex items-start gap-2">
@@ -337,19 +337,19 @@ export function Onboarding() {
                   <b>حماية الطوارئ:</b>{" "}
                   {deviceNeeds === "yes"
                     ? "«وضع العمل الآمن» جاهز — مش محتاج تسيب جهازك."
-                    : "تدخلات ابتعاد عن الجهاز عند الخطر."}
+                    : "تدخلات للابتعاد عن الجهاز وقت الخطر."}
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <Compass className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span>
-                  <b>أربع قواعد «إذا… إذن» جاهزة في خطة الوقاية،</b> مستمدة من أكثر
+                  <b>أربع قواعد «إذا… إذن» جاهزة في خطة الوقاية،</b> مبنية على أكتر
                   الأنماط شيوعًا.
                 </span>
               </div>
             </div>
             <InfoNote tone="info">
-              بياناتك كلها هتتخزن على جهازك بس — من غير حساب، ولا خادم، ولا إرسال لأي مكان.
+              بياناتك كلها هتتخزن على جهازك بس — من غير حسابات، ولا خوادم، ولا إرسال لأي مكان.
             </InfoNote>
           </div>
         )}

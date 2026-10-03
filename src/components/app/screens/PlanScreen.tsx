@@ -17,9 +17,9 @@ import { ListChecks, Moon, Sun, Zap, ShieldAlert, ChevronLeft, Save } from "luci
 const BODY_CHOICES = ["يوم صعب؟ أربع ركائز بس — يكفي", "مشي ٢٠ دقيقة", "تمرين منزلي", "تمرين رياضي", "دراجة/جري", "تمدد"];
 
 const MODES = [
-  { id: "minimum", label: "الحد الأدنى", desc: "يوم صعب؟ أربع ركائز فقط — يكفي" },
-  { id: "standard", label: "قياسي", desc: "اليوم المتوازن الكامل" },
-  { id: "extra", label: "إضافي", desc: "طاقة عالية؟ أضف بناءً أكثر" },
+  { id: "minimum", label: "الحد الأدنى", desc: "يوم صعب؟ أربع ركائز بس — يكفي" },
+  { id: "standard", label: "قياسي", desc: "يومك المتوازن كامل" },
+  { id: "extra", label: "إضافي", desc: "عندك طاقة؟ زوّد في البناء" },
 ] as const;
 
 export function PlanScreen() {
@@ -72,7 +72,7 @@ export function PlanScreen() {
     const base = [
       {
         id: "morning",
-        title: "انهض مبكرًا بما يكفي · لا تصفح في أول ٣٠ دقيقة · حدّد مهمة اليوم",
+        title: "اصحى بدري كفاية · ما تتصفحش أول ٣٠ دقيقة · حدّد مهمة النهارده",
         body: "اختار مهمة واحدة بس — وابدأ بأصغر خطوة فيها",
         modes: ["standard", "extra"],
       },
@@ -85,14 +85,14 @@ export function PlanScreen() {
       },
       {
         id: "body",
-        title: "الجسد: حركة",
+        title: "الجسم: حركة",
         body: bodyChoice || "١٠–٣٠ دقيقة حركة مناسبة لك",
         modes: ["minimum", "standard", "extra"],
         choices: true,
       },
       {
         id: "attention",
-        title: "انتباه: جلسة تركيز",
+        title: "الانتباه: جلسة تركيز",
         body: "لا استخدام بلا هدف · الهاتف برا السرير · مراجعة سريعة لحاجزاتك",
         modes: ["standard", "extra"],
       },
@@ -116,7 +116,7 @@ export function PlanScreen() {
       },
       {
         id: "focus-2",
-        title: "جلسة تركيز ثانية",
+        title: "جلسة تركيز تانية",
         body: "إضافة لليوم الإضافي فقط — جلسة بناء إضافية",
         modes: ["extra"],
       },
@@ -132,13 +132,13 @@ export function PlanScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title="الخطة اليومية"
-        subtitle={`${arabicDate(new Date())} — البناء اليومي هو التعافي الحقيقي`}
+        subtitle={`${arabicDate(new Date())} — بناء اليوم جزء أساسي من التعافي`}
         icon={<ListChecks className="size-5" />}
       />
 
       {forecast && (
         <InfoNote tone={forecast.level === "elevated" ? "warning" : "info"}>
-          <b>توقّع اليوم:</b> {forecast.message}
+          <b>توقّع بكرة:</b> {forecast.message}
           {forecast.level === "elevated" && (
             <Button
               size="sm"
@@ -147,7 +147,7 @@ export function PlanScreen() {
               onClick={() => navigate("prevention")}
             >
               <ShieldAlert className="size-4" />
-              فعّل قواعد اليوم مسبقًا
+              فعّل قواعد اليوم من بدري
             </Button>
           )}
         </InfoNote>
@@ -174,7 +174,7 @@ export function PlanScreen() {
       </div>
       {mode === "minimum" && (
         <InfoNote>
-          يوم الحد الأدنى ليس تنازلًا — إنه أذكى استجابة لليوم الصعب. يوم ناقص خير من يوم منهار.
+          يوم الحد الأدنى مش تنازل — ده استجابة أذكى لليوم الصعب. يوم ناقص أحسن من يوم منهار.
         </InfoNote>
       )}
 
@@ -227,7 +227,7 @@ export function PlanScreen() {
             <div>
               <div className="font-bold">المراجعة المسائية</div>
               <div className="text-xs text-muted-foreground">
-                {checkedInToday ? "أُنجزت الليلة ✓ — شكرًا لصدقك" : "٥ أسئلة قصيرة + توقّع الغد"}
+                {checkedInToday ? "خلصت المراجعة الليلة ✓ — شكرًا لصدقك" : "٥ أسئلة قصيرة + توقّع بكرة"}
               </div>
             </div>
           </div>
@@ -237,8 +237,7 @@ export function PlanScreen() {
 
       <InfoNote tone="info">
         <Sun className="mb-1 me-1 inline size-4" />
-        لا تسعَ للكمال: فقدان بند واحد لا يفسد اليوم — والتخطي ليس فشلًا، بل حكمة
-        اليوم الصعب. أكمل ما تستطيع وواصل.
+        ما تدورش على الكمال: لو بند واحد فاتك، اليوم ما باظش — وتخطّي اليوم مش فشل، بالعكس ده اختيار مناسب لليوم الصعب. كمّل اللي تقدر عليه وبس.
       </InfoNote>
     </div>
   );
@@ -379,7 +378,7 @@ function EveningCheckInDialog({
             <>
               <div>
                 <div className="mb-1 flex justify-between text-sm font-semibold">
-                  <span>١ · أعلى رغبة اليوم؟</span>
+                  <span>١ · أعلى مستوى للرغبة النهارده؟</span>
                   <span className="tnum text-xs font-bold text-primary">
                     {highestUrge}/5
                   </span>
@@ -393,7 +392,7 @@ function EveningCheckInDialog({
                       type="button"
                       role="radio"
                       aria-checked={highestUrge === n}
-                      aria-label={`أعلى رغبة اليوم: ${n} من ٥`}
+                      aria-label={`أعلى مستوى للرغبة النهارده: ${n} من ٥`}
                       onClick={() => setHighestUrge(n)}
                       className={`tnum h-11 flex-1 rounded-lg border text-base font-bold transition-colors ${
                         highestUrge === n
@@ -406,12 +405,12 @@ function EveningCheckInDialog({
                   ))}
                 </div>
                 <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                  <span>بالكاد وجدت</span>
-                  <span>أقصى ما وصلت له</span>
+                  <span>بالكاد حسيت بيها</span>
+                  <span>لأقصى درجة وصلت لها</span>
                 </div>
               </div>
               <div>
-                <div className="mb-2 text-sm font-semibold">٢ · المحفز الرئيسي اليوم؟</div>
+                <div className="mb-2 text-sm font-semibold">٢ · المحفز الأساسي النهارده؟</div>
                 <div className="flex flex-wrap gap-1.5">
                   {TRIGGERS.slice(0, 10).map((t) => (
                     <Chip
@@ -425,9 +424,9 @@ function EveningCheckInDialog({
                 </div>
               </div>
               <div>
-                <div className="mb-2 text-sm font-semibold">٣ · هل استخدمت تدخلًا؟</div>
+                <div className="mb-2 text-sm font-semibold">٣ · استخدمت تدخل؟</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {["لا، لم أحتج", "نعم — ونجح", "نعم — جزئيًا", "لم أفكر فيه"].map((o) => (
+                  {["لأ، ما احتجتش", "أيوه — نجح", "أيوه — جزئيًا", "ما فكرتش فيه"].map((o) => (
                     <Chip
                       key={o}
                       size="sm"
@@ -444,7 +443,7 @@ function EveningCheckInDialog({
           {step === 1 && (
             <>
               <div>
-                <div className="mb-2 text-sm font-semibold">٤ · درس واحد من اليوم؟</div>
+                <div className="mb-2 text-sm font-semibold">٤ · درس واحد من النهارده؟</div>
                 <Textarea
                   value={lesson}
                   onChange={(e) => setLesson(e.target.value)}
@@ -453,11 +452,11 @@ function EveningCheckInDialog({
                 />
               </div>
               <div>
-                <div className="mb-2 text-sm font-semibold">٥ · تغيير واحد للغد؟</div>
+                <div className="mb-2 text-sm font-semibold">٥ · تغيير واحد لبكرة؟</div>
                 <Textarea
                   value={changeTomorrow}
                   onChange={(e) => setChangeTomorrow(e.target.value)}
-                  placeholder="مثال: الهاتف يبيت خارج الغرفة…"
+                  placeholder="مثال: الهاتف يبات برا الغرفة…"
                   className="min-h-20 text-sm"
                 />
               </div>
@@ -467,7 +466,7 @@ function EveningCheckInDialog({
           {step === 2 && (
             <>
               <div className="text-sm font-semibold">
-                ظروف الغد (لتوقّع الغد — ليس تنبؤًا، بل استعدادًا)
+                ظروف بكرة (علشان نستعد — مش علشان نتنبأ)
               </div>
               {condScale("مثال: الهاتف يبيت برا الغرفة…", sleepQuality, setSleepQuality, "سيئ جدًا", "ممتاز")}
               {condScale("ظروف الغد (لتوقّع الغد — مش تنبؤ، بل استعدادًا)", stress, setStress, "هادئ", "مرتفع جدًا")}
@@ -491,7 +490,7 @@ function EveningCheckInDialog({
         </div>
         <p className="flex items-center gap-1 text-center text-[11px] leading-relaxed text-muted-foreground">
           <Zap className="size-3 shrink-0" />
-          صراحتك هنا هي ما يجعل خريطتك وتوقعاتك دقيقة — البيانات تبقى على جهازك.
+          صراحتك هنا هي اللي بتخلّي خريطتك وتوقعاتك أدق — بياناتك بتفضل على جهازك.
         </p>
       </DialogContent>
     </Dialog>

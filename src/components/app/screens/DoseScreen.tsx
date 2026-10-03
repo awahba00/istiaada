@@ -100,23 +100,23 @@ export function DoseScreen() {
                   onClick={() => logDose(today, dose.id, "done")}
                 >
                   <Check className="size-4" />
-                  تمت الجرعة
+                  أنهيت الجرعة
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={() => logDose(today, dose.id, "skipped")}
                   className="gap-1.5"
-                  title="البطاقة نفسها هنا لو حسّيت تقرأها دلوقتي — والجرعة الجديدة بانتظارك بكرة."
+                  title="البطاقة نفسها موجودة هنا لو حبيت تقراها دلوقتي — والجرعة الجديدة مستنياك بكرة."
                 >
                   <SkipForward className="size-4" />
-                  تخطي اليوم
+                  تخطّى اليوم
                 </Button>
               </div>
               {/* Visible on mobile too — the skip-is-not-failure guidance
                   used to live only in a desktop-only tooltip. */}
               <p className="text-center text-xs leading-relaxed text-muted-foreground">
-                التخطي ليس فشلًا — الجرعة القادمة بانتظارك، والتعافي لا يُقاس بيوم واحد.
+                تخطّي اليوم مش فشل — الجرعة الجاية مستنياك، والتعافي مش بيتقاس بيوم واحد.
               </p>
             </>
           )}
@@ -124,11 +124,11 @@ export function DoseScreen() {
       </Card>
 
       <InfoNote>
-        اختيرت هذه الجرعة بناءً على حالتك الحالية —{" "}
+        الجرعة دي اتختارت بناءً على حالتك دلوقتي —{" "}
         {data.relapseEvents.some(
           (r) => Date.now() - new Date(r.ts).getTime() < 7 * 86400000
         )
-          ? "لأن سجلك يحوي زَلّة أو انتكاسة خلال هذا الأسبوع، نفضّل موضوعات الزلّة والانتكاسة والعودة."
+          ? "علشان سجلّك فيه زَلّة أو انتكاسة خلال الأسبوع ده، بنفضّل موضوعات الزلّة والانتكاسة والعودة."
           : "ولا يهمك — تقدر تعدّي أي جرعة"}
       </InfoNote>
 
@@ -157,7 +157,7 @@ export function DoseScreen() {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {d.status === "done" ? "أُنجزت" : "مُخطاة"}
+                    {d.status === "done" ? "أنجزتها" : "تخطّيتها"}
                   </span>
                 </button>
               ))}
@@ -172,7 +172,7 @@ export function DoseScreen() {
       </InfoNote>
 
       <Button variant="outline" className="w-full" onClick={() => navigate("knowledge")}>
-        تصفح قاعدة المعرفة كاملة
+        افتح قاعدة المعرفة كاملة
       </Button>
     </div>
   );

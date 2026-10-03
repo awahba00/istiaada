@@ -52,7 +52,7 @@ function SplashScreen() {
       </div>
       <noscript>
         <p className="mt-4 max-w-xs text-center text-sm leading-relaxed text-muted-foreground">
-          هذا التطبيق يحتاج تشغيل جافاسكربت — ويعمل بعد ذلك محليًا بالكامل على جهازك.
+          التطبيق ده محتاج جافاسكربت عشان يشتغل — وبعد كده كل حاجة بتشتغل محليًا على جهازك.
         </p>
       </noscript>
     </div>

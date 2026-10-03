@@ -116,9 +116,9 @@ export function EmergencyMode() {
           <div className="flex size-20 items-center justify-center rounded-full bg-success/20 text-success">
             <Check className="size-10" strokeWidth={2.5} />
           </div>
-          <h1 className="text-2xl font-bold">هبط الخطر — أحسنت</h1>
+          <h1 className="text-2xl font-bold">الخطر هدي — كويس</h1>
           <p className="max-w-sm leading-relaxed text-muted-foreground">
-            ارجع ليومك الطبيعي. سجّلنا إنك تعاملت مع الموجة — وده بيتراكم في
+            ارجع ليومك الطبيعي. سجّلنا إنك اتعاملت مع الموجة — وده بيتحسب في
             مؤشراتك.
           </p>
           <Button
@@ -129,7 +129,7 @@ export function EmergencyMode() {
               stopEmergency();
             }}
           >
-            عودة إلى يومي
+            ارجع ليومي
             <ArrowLeft className="size-4" />
           </Button>
 
@@ -208,14 +208,14 @@ export function EmergencyMode() {
               setStep(4);
             }}
           >
-            تم — الخطوة التالية
+            تم — الخطوة اللي بعدها
           </Button>
 
           {escalated && (
             <div className="w-full space-y-3 rounded-2xl border border-border bg-background/60 p-4">
               <div className="flex items-center gap-2 font-semibold">
                 <Users className="size-4" />
-                إن أمكن فورًا:
+                لو تقدر دلوقتي:
               </div>
               <div className="flex flex-wrap gap-2">
                 {data.supportPerson?.phone && (
@@ -229,7 +229,7 @@ export function EmergencyMode() {
                 )}
                 {!data.supportPerson?.phone && (
                   <span className="rounded-xl bg-muted px-3 py-2 text-sm">
-                    «{SUPPORT_MESSAGE_TEMPLATES[0]}» — أرسلها لأي شخص تثق به
+                    «{SUPPORT_MESSAGE_TEMPLATES[0]}» — ابعتها لأي شخص تثق فيه
                   </span>
                 )}
               </div>
@@ -244,7 +244,7 @@ export function EmergencyMode() {
   if (step === 4) {
     return (
       <EmergencyFrame maximum={maximum} key="emergency-step4">
-        <Header maximum={maximum} step={4} riskLevel={riskLevel} title="هبط الخطر؟" />
+        <Header maximum={maximum} step={4} riskLevel={riskLevel} title="الخطر هدي؟" />
         <div className="w-full space-y-3">
           <Button
             size="lg"
@@ -254,7 +254,7 @@ export function EmergencyMode() {
             onClick={() => nextFromIntervention(true)}
           >
             <Check className="size-6 text-success" />
-            نعم — هبط
+            أيوه — هدي
           </Button>
           <Button
             size="lg"
@@ -262,7 +262,7 @@ export function EmergencyMode() {
             onClick={() => nextFromIntervention(false)}
           >
             <Siren className="size-6" />
-            لا — لسه مرتفع: جرّب تدخلًا أقوى
+            لأ — لسه عالي: جرّب تدخل أقوى
           </Button>
         </div>
 
@@ -276,9 +276,9 @@ export function EmergencyMode() {
   // ————— Steps 1 & 2 —————
   const step1Text = workSafe
     ? "اقفل المصدر دلوقتي: التبويب، التطبيق، أو الصفحة — من غير ما تقرا سطر زيادة."
-    : "أغلق المصدر الآن: التبويب، التطبيق، أو الصفحة — بلا قراءة سطر إضافي.";
+    : "اقفل المصدر دلوقتي: التبويب، التطبيق، أو الصفحة — من غير ما تقرا سطر زيادة.";
   const step2Text =
-    "اخرج من المكان لأي مكان فيه ناس أو حركة — ومش لازم تخبر حد بأي حاجة.";
+    "اخرج من المكان لأي مكان فيه ناس أو حركة — ومش لازم تقول لحد حاجة.";
 
   return (
     <EmergencyFrame maximum={maximum} key={`emergency-step-${step}`}>
@@ -466,7 +466,7 @@ function Header({
       <p className="text-sm leading-relaxed text-muted-foreground">
         ما تحللش دلوقتي.
         <br />
-        نفّذ الخطوة الحالية فقط.
+        اعمل الخطوة الحالية بس.
       </p>
       {title && <div className="pt-1 text-xl font-bold">{title}</div>}
       {step != null && (

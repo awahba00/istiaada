@@ -23,7 +23,7 @@ export function ProgressScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title="التقدم"
-        subtitle="مؤشرات متعددة صادقة — لا نسبة تعافٍ زائفة، ولا يوم يعود إلى الصفر."
+        subtitle="مؤشرات متعددة حقيقية — مفيش نسبة تعافٍ زائفة، ولا يوم بيرجع للصفر."
         icon={<TrendingUp className="size-5" />}
       />
 
@@ -32,7 +32,7 @@ export function ProgressScreen() {
         <div className="bg-primary/10 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs text-primary">رحلة اليوم</div>
+              <div className="text-xs text-primary">رحلة النهارده</div>
               <div className="text-2xl font-black">
                 اليوم <span className="tnum">{m.daysSinceStart}</span>
               </div>
@@ -68,9 +68,9 @@ export function ProgressScreen() {
       {/* Days-clean + check-in continuity — one metric among many, not the center */}
       <div className="grid grid-cols-2 gap-2.5">
         <StatTile
-          label="أيام منذ آخر زَلّة"
+          label="أيام من آخر زَلّة"
           value={m.daysSinceLastRelapse != null ? String(m.daysSinceLastRelapse) : "—"}
-          hint="مؤشر واحد من ضمن المؤشرات"
+          hint="ده مؤشر واحد ضمن مجموعة مؤشرات"
         />
         <StatTile
           label="مراجعات متتالية"
@@ -89,27 +89,27 @@ export function ProgressScreen() {
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <StatTile
-              label="رغبات تعاملت معها"
+              label="رغبات اتعاملت معاها"
               value={String(m.urgesHandled)}
-              hint={`${m.urgesHandled7d} خلال آخر ٧ أيام`}
+              hint={`${m.urgesHandled7d} خلال آخر أسبوع`}
               direction={m.urgesHandled7d > 0 ? "up" : undefined}
             />
             <StatTile
-              label="جلسات وقّفتها مبكرًا"
+              label="جلسات وقفتها بدري"
               value={String(m.earlyInterventions)}
-              hint="عند درجة ٣ أو أقل — خلال ٣٠ يومًا"
+              hint="عند درجة ٣ أو أقل — خلال ٣٠ يوم"
               direction={m.earlyInterventions > 0 ? "up" : undefined}
             />
             <StatTile
-              label="جلسات أوقفتها مبكرًا"
+              label="جلسات وقفتها بدري"
               value={String(m.sessionsStoppedEarly)}
-              hint="توقفت خلال دقائق من السلوك"
+              hint="وقفتها خلال دقايق من بداية السلوك"
               direction={m.sessionsStoppedEarly > 0 ? "up" : undefined}
             />
             <StatTile
               label="أوقفت عند أولها"
               value={String(m.secondFallPrevented)}
-              hint="سجلات لم تتحول لجلسة ممتدة"
+              hint="سجلات ما امتدتش لجلسة طويلة"
               direction={m.secondFallPrevented > 0 ? "up" : undefined}
             />
           </div>
@@ -134,21 +134,21 @@ export function ProgressScreen() {
               }
               hint={
                 m.stopTrend === "better"
-                  ? "أسرع من الشهر السابق ✓"
+                  ? "أسرع من الشهر اللي فات ✓"
                   : m.stopTrend === "worse"
-                    ? "أبطأ قليلًا — راجع نقاط القطع"
-                    : "متوسط زمن التوقف بعد السلوك"
+                    ? "أبطأ شوية — راجع نقاط القطع"
+                    : "متوسط وقت التوقف بعد السلوك"
               }
               direction={m.stopTrend === "better" ? "up" : undefined}
             />
             <StatTile
-              label="منخفض عن اللي فات ✓"
+              label="أقل من اللي فات ✓"
               value={m.relapsePerWeek != null ? `${m.relapsePerWeek}/أسبوع` : "—"}
               hint={
                 m.relapseTrend === "better"
-                  ? "منخفض عن السابق ✓"
+                  ? "أقل من السابق ✓"
                   : m.relapseTrend === "worse"
-                    ? "مرتفع — راجع حماية أوقات الخطر"
+                    ? "عالي — راجع حماية أوقات الخطر"
                     : "آخر ٤ أسابيع"
               }
               direction={m.relapseTrend === "better" ? "down" : undefined}
@@ -156,13 +156,13 @@ export function ProgressScreen() {
             <StatTile
               label="وعي بالمحفزات"
               value={String(m.triggerAwareness)}
-              hint="محفزات مختلفة رصدتها خلال ٣٠ يومًا"
+              hint="محفزات مختلفة رصدتها خلال ٣٠ يوم"
               direction={m.triggerAwareness >= 3 ? "up" : undefined}
             />
             <StatTile
               label="الاستقرار اليومي"
               value={`${m.dailyStability}%`}
-              hint="إنجاز المراجعة المسائية خلال ١٤ يومًا"
+              hint="إنجاز المراجعة المسائية خلال ١٤ يوم"
               direction={m.dailyStability >= 50 ? "up" : undefined}
             />
           </div>
@@ -174,55 +174,53 @@ export function ProgressScreen() {
         <CardContent className="space-y-3.5 pt-5">
           <div className="flex items-center gap-2 font-bold">
             <Sparkles className="size-4 text-primary" />
-            قراءات من سجلك
+            قراءات من سجلّك
           </div>
           {insights.topTrigger ? (
             <InsightRow
               icon={<Flag className="size-4" />}
-              label="أكثر محفز متكرر"
+              label="أكتر محفز متكرر"
               value={`${insights.topTrigger.label} (${insights.topTrigger.count}×)`}
             />
           ) : null}
           {insights.bestIntervention ? (
             <InsightRow
               icon={<Zap className="size-4" />}
-              label="أحسن تدخل عندك"
+              label="التدخل اللي نجح معاك أكتر"
               value={`${insights.bestIntervention.name} — نجح ${insights.bestIntervention.wins} مرة`}
             />
           ) : null}
           {insights.avgRiskAtIntervention != null && (
             <InsightRow
               icon={<Compass className="size-4" />}
-              label="متوسط بدء تدخلك"
-              value={`عند درجة ${insights.avgRiskAtIntervention} من ٥ — كلما انخفضت، كنت أسرع استجابة`}
+              label="متوسط بداية تدخلك"
+              value={`عند درجة ${insights.avgRiskAtIntervention} من ٥ — كل ما الرقم يقل، استجابتك أسرع`}
             />
           )}
           {insights.mostRiskyTime && (
             <InsightRow
               icon={<Clock className="size-4" />}
-              label="أكثر وقت محتاج حماية"
+              label="أكتر وقت محتاج حماية"
               value={TIME_BUCKET_LABELS[insights.mostRiskyTime.bucket]}
             />
           )}
           {insights.topPattern && (
             <InsightRow
               icon={<Compass className="size-4" />}
-              label="سجّل كام فحص رغبة وتدخل، وهتظهر هنا قراءاتك: أحسن تدخل، أخطر وقت، وسرعة استجابتك."
+              label="سجّل كام فحص رغبة وتدخل، وهتظهر هنا قراءاتك: أفضل تدخل، أخطر وقت، وسرعة استجابتك."
               value={insights.topPattern.parts.join(" + ")}
             />
           )}
           {!insights.topTrigger && !insights.bestIntervention && (
             <p className="text-sm leading-relaxed text-muted-foreground">
-              سجّل بضعة فحوصات رغبة وتدخلات، وستظهر هنا قراءاتك: أفضل تدخل، أخطر وقت،
-              وسرعة استجابتك.
+              سجّل كام فحص رغبة وتدخل، وهتظهر هنا قراءاتك: أحسن تدخل، أخطر وقت، وسرعة استجابتك.
             </p>
           )}
         </CardContent>
       </Card>
 
       <InfoNote tone="info">
-        كل مؤشر هنا يمثل شيئًا حقيقيًا في سلوكك، ويمكن تحسينه بخطوة صغيرة — رغبة تُرصد،
-        تدخل مبكر، توقف أسرع. حتى الزَلّة نفسها قد تحمل دليل تحسن: توقفت أبكر من قبلها.
+        كل مؤشر هنا بيعبر عن حاجة حقيقية في سلوكك، وممكن تحسّنه بخطوة صغيرة — رغبة ترصدها، تدخل بدري، وقفة أسرع. حتى الزَلّة نفسها ممكن يكون فيها علامة تحسن: وقفت أبكر من المرة اللي قبلها.
       </InfoNote>
     </div>
   );

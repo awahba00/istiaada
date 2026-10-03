@@ -37,7 +37,7 @@ export function ValuesScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title="القيم والروحانيات"
-        subtitle="سببك أنت — يظهر لك في اللحظات الصعبة. المحتوى الروحي اختياري بالكامل."
+        subtitle="سببك إنت — هيظهر لك في اللحظات الصعبة. المحتوى الروحي اختياري بالكامل."
         icon={<Heart className="size-5" />}
       />
 
@@ -46,7 +46,7 @@ export function ValuesScreen() {
         <CardContent className="space-y-4 pt-5">
           <div className="flex items-center gap-2 text-lg font-bold text-primary">
             <Compass className="size-5" />
-            لماذا أفعل هذا؟
+            ليه بعمل ده؟
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -64,9 +64,9 @@ export function ValuesScreen() {
           </div>
 
           <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
-            <div className="text-xs font-bold text-primary">كلماتك أنت:</div>
+            <div className="text-xs font-bold text-primary">كلامك إنت:</div>
             <p className="mt-1.5 min-h-10 text-sm font-semibold leading-relaxed">
-              {data.userProfile.why.trim() || "لم تكتب سببك بعد — اكتبه أدناه؛ سيظهر هنا وفي لحظاتك الصعبة."}
+              {data.userProfile.why.trim() || "لسه ما كتبتش سببك — اكتبه تحت، وهتلاقيه هنا وفي لحظاتك الصعبة."}
             </p>
           </div>
 
@@ -79,16 +79,16 @@ export function ValuesScreen() {
           <Textarea
             value={why}
             onChange={(e) => setWhy(e.target.value)}
-            placeholder="لسه ما كتبتش سببك — اكتبه تحت؛ وهتلاقيه هنا وفي لحظاتك الصعبة."
+            placeholder="لسه ما كتبتش سببك — اكتبه تحت، وهتلاقيه هنا وفي لحظاتك الصعبة."
             className="min-h-28 bg-background text-sm leading-relaxed"
             maxLength={400}
           />
           <div className="flex items-center gap-3">
             <Button onClick={save} className="gap-1.5">
               <Save className="size-4" />
-              حفظ سببي
+              احفظ سببي
             </Button>
-            {saved && <span className="text-sm font-semibold text-success">حُفظ ✓</span>}
+            {saved && <span className="text-sm font-semibold text-success">اتحفظ ✓</span>}
           </div>
         </CardContent>
       </Card>
@@ -120,7 +120,7 @@ export function ValuesScreen() {
             />
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            صلاة، ذكر، قراءة قرآن، تأمل، توبة وعودة — تظهر فقط لمن يفعّلها، وتُفصل
+            صلاة، ذكر، قراءة قرآن، تأمل، توبة وعودة — بتظهر بس للي يفعّلها، ومنفصلة
             تمامًا عن المحتوى العلمي في التطبيق.
           </p>
 
@@ -216,7 +216,7 @@ function ValuesDraft() {
             onChange={(e) =>
               setValues((arr) => arr.map((x, j) => (j === i ? { ...x, sentence: e.target.value } : x)))
             }
-            placeholder="جملتها — مثال: أحترم وقتي فلا أبيعه رخيصًا"
+            placeholder="جملتها — مثال: بحترم وقتي فما بضيّعوش على الفاضي"
             className="min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm"
           />
         </div>
@@ -226,11 +226,10 @@ function ValuesDraft() {
         size="sm"
         onClick={() => setValues((arr) => [...arr, { value: "", sentence: "" }])}
       >
-        + قيمة أخرى
+        + قيمة تانية
       </Button>
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        تُحفظ هذه المسودة على جهازك تلقائيًا — تبقى هنا مهما تنقّلت أو أعدت فتح
-        التطبيق، وما يعنيك منه انقله إلى سببك الشخصي أعلاه ليظهر في لحظاتك الصعبة.
+        المسودة دي بتتخزن على جهازك تلقائيًا — هتفضل هنا مهما تنقلت أو فتحت التطبيق تاني، ولو فيها حاجة مهمة ليك انقلها لسببك الشخصي فوق عشان تظهر لك وقت الشدة.
       </p>
     </div>
   );

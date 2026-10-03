@@ -95,10 +95,10 @@ export function Countdown({
         <div className="text-center">
           <div className="tnum text-3xl font-bold">{display}</div>
           {done ? (
-            <div className="text-xs font-semibold text-success">اكتمل الوقت</div>
+            <div className="text-xs font-semibold text-success">الوقت خلص</div>
           ) : (
             <div className="text-xs text-muted-foreground">
-              {running ? "جارٍ التنفيذ…" : "متوقف"}
+              {running ? "شغّال دلوقتي…" : "متوقف"}
             </div>
           )}
         </div>
@@ -117,7 +117,7 @@ export function Countdown({
                 </>
               ) : (
                 <>
-                  <Play className="size-4" /> {remaining === seconds ? "ابدأ" : "استئناف"}
+                  <Play className="size-4" /> {remaining === seconds ? "ابدأ" : "كمّل"}
                 </>
               )}
             </Button>
@@ -146,13 +146,13 @@ export function Countdown({
             }}
             className="gap-1.5"
           >
-            <RotateCcw className="size-4" /> مرة أخرى
+            <RotateCcw className="size-4" /> اعملها مرة تانية
           </Button>
         )}
       </div>
       {done && (
         <div className="flex items-center gap-1.5 text-sm font-semibold text-success">
-          <Check className="size-4" /> أنجزت الوقت — أعد التقييم الآن
+          <Check className="size-4" /> الوقت خلص — عيد التقييم دلوقتي
         </div>
       )}
     </div>

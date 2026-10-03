@@ -38,19 +38,19 @@ import {
 type View = "main" | "stop" | "quick" | "reframe" | "review";
 
 const STOP_STEPS = [
-  "أغلق اللي قدامك الآن — مهما كان حجمه.",
-  "انهض واخرج من المكان فورًا.",
-  "متدورش على «بديل» — البديل جزء من نفس الحلقة.",
-  "ارجع لأي نشاط طبيعي — أي مهمة صغيرة ملموسة.",
-  "متعاقبش نفسك — لا إنهاك ولا حرمان ولا جلد.",
-  "التحليل بعدين لما تهدى — دلوقتي: توقف وبس.",
+  "اقفل اللي قدامك دلوقتي — مهما كان حجمه.",
+  "قوم واخرج من المكان فورًا.",
+  "ما تدورش على «بديل» — البديل جزء من نفس الحلقة.",
+  "ارجع لأي نشاط عادي — أي مهمة صغيرة وملموسة.",
+  "ما تعاقبش نفسك — لا إنهاك ولا حرمان ولا جلد.",
+  "حلّل بعدين لما تهدى — دلوقتي: وقف وبس.",
 ];
 
 const TIME_TO_STOP_OPTIONS: { id: TimeToStop; label: string }[] = [
-  { id: "immediately", label: "توقفت فورًا" },
-  { id: "minutes", label: "خلال دقائق" },
+  { id: "immediately", label: "وقفت فورًا" },
+  { id: "minutes", label: "خلال دقايق" },
   { id: "under-hour", label: "أقل من ساعة" },
-  { id: "longer", label: "استغرق أكثر" },
+  { id: "longer", label: "أخذ وقت أطول" },
 ];
 
 /** Phase 2B.2 — behavior types (user-facing labels, Arabic only). */
@@ -68,12 +68,12 @@ const CLASSIFICATION_OPTIONS: {
   {
     id: "slip",
     label: "زَلّة",
-    desc: "مرة محدودة ثم توقفت عندها",
+    desc: "مرة محدودة وبعدها وقفت",
   },
   {
     id: "relapse",
     label: "انتكاسة",
-    desc: "شعرت أنني عدت إلى النمط القديم",
+    desc: "حسّيت إني رجعت للنمط القديم",
   },
 ];
 
@@ -250,7 +250,7 @@ export function RelapseScreen() {
                 else setStopStep(stopStep + 1);
               }}
             >
-              {stopStep === 0 ? "أوقفت — الخطوة التالية" : "تم"}
+              {stopStep === 0 ? "أوقفت — الخطوة اللي بعدها" : "تم"}
             </Button>
           )}
           <button
@@ -258,7 +258,7 @@ export function RelapseScreen() {
             onClick={() => setView("quick")}
             className="mx-auto mt-2 block text-xs text-muted-foreground hover:text-foreground"
           >
-            تخطي إلى التسجيل السريع
+            تخطّى للتسجيل السريع
           </button>
         </div>
       </div>
@@ -273,12 +273,12 @@ export function RelapseScreen() {
       <div className="space-y-5">
         <ScreenHeader
           title="تسجيل سريع"
-          subtitle="دقيقة واحدة — بلا تفاصيل صريحة. البيانات تصنع خريطتك."
+          subtitle="دقيقة واحدة — من غير تفاصيل صريحة. بياناتك بتكوّن خريطتك."
           icon={<LifeBuoy className="size-5" />}
         />
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">ما السلوك الذي حدث؟</div>
+            <div className="text-sm font-semibold">إيه السلوك اللي حصل؟</div>
             <div className="flex flex-wrap gap-2">
               {BEHAVIOR_OPTIONS.map((o) => (
                 <Chip
@@ -296,13 +296,13 @@ export function RelapseScreen() {
               ))}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              اختر كل ما حدث — الاثنين معًا إن كانا معًا.
+              اختار كل اللي حصل — الاتنين مع بعض لو حصلوا.
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">كيف تصف ما حدث؟</div>
+            <div className="text-sm font-semibold">إزاي توصف اللي حصل؟</div>
             <div className="space-y-2.5">
               {CLASSIFICATION_OPTIONS.map((o) => (
                 <button
@@ -322,13 +322,13 @@ export function RelapseScreen() {
               ))}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              تصنيفك أنت — التطبيق لا يقرر عنك.
+              التصنيف بتاعك إنت — التطبيق مش هو اللي بيقرر عنك.
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">ما الذي بدأ الأمر؟</div>
+            <div className="text-sm font-semibold">إيه اللي بدأ الموضوع؟</div>
             <ChipMultiSelect
               size="sm"
               options={TRIGGERS.map((t) => ({ id: t.id, label: t.label }))}
@@ -339,7 +339,7 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">كم استغرق التوقف؟</div>
+            <div className="text-sm font-semibold">وقفت بعد قد إيه؟</div>
             <div className="flex flex-wrap gap-2">
               {TIME_TO_STOP_OPTIONS.map((o) => (
                 <Chip
@@ -354,15 +354,15 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">هل كمّلت بعد أول مرة؟</div>
+            <div className="text-sm font-semibold">كمّلت بعد أول مرة؟</div>
             <div className="flex gap-2">
               <Chip label="تصنيفك أنت — التطبيق مش هو اللي يقرر عنك." selected={qContinued === false} onClick={() => setQContinued(false)} />
-              <Chip label="نعم، استمرت الجلسة" selected={qContinued === true} onClick={() => setQContinued(true)} />
+              <Chip label="أيوه، كمّلت الجلسة" selected={qContinued === true} onClick={() => setQContinued(true)} />
             </div>
           </CardContent>
         </Card>
         <Button size="lg" className="w-full" onClick={saveQuick} disabled={!canSaveQuick}>
-          حفظ ومتابعة
+          احفظ وكمل
         </Button>
       </div>
     );
@@ -377,15 +377,15 @@ export function RelapseScreen() {
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="بعد ما حدث: تذكير مهم"
-          subtitle="اقرأها بهدوء ثم عد إلى يومك."
+          title="بعد اللي حصل: افتكر حاجة مهمة"
+          subtitle="اقراها بهدوء وبعدين ارجع ليومك."
           icon={<ShieldCheck className="size-5" />}
         />
         <div className="space-y-3">
           {[
             "اللي حصل مش بيحدد مستقبلك.",
-            "لا — وقّفت عند أولها",
-            "اللي حصل مش يوم ضايع، ولا إذن بالتكملة — الوقفة دلوقتي قرار جديد.",
+            "لأ — وقفت عند أولها",
+            "اللي حصل مش يوم ضاع، ولا إذن بالتكملة — الوقفة دلوقتي قرار جديد.",
             "اللي حصل معلومة — استخدمها في تحسين خطة الأيام الجاية.",
           ].map((t) => (
             <div
@@ -399,21 +399,21 @@ export function RelapseScreen() {
         </div>
         {cls === "relapse" ? (
           <InfoNote>
-            سجّلناها كانتكاسة. الوقفة هنا — رغم كل شيء — خطوة قائمة بذاتها، ومؤشراتك
-            محفوظة. المراجعة الهادئة تنتظرك هنا لاحقًا، لما تهدأ.
+            سجّلناها كانتكاسة. الوقفة هنا — رغم كل حاجة — خطوة لها قيمتها، ومؤشراتك
+            محفوظة. المراجعة الهادئة مستنياك هنا بعدين، لما تهدى.
           </InfoNote>
         ) : (
           <InfoNote>
             سجّلناها كزَلّة — ومؤشراتك محفوظة:{" "}
             {savedEvent?.timeToStop === "immediately"
-              ? "اقرأها براحة ثم عد إلى يومك."
+              ? "اقراها براحة وبعدين ارجع ليومك."
               : "وقفت — وكل وقفة بتتحسب ليك"}
-            . المراجعة الهادئة تنتظرك هنا لاحقًا، لما تكون مستعدًا.
+            . المراجعة الهادئة مستنياك هنا بعد كده، لما تكون مستعد.
           </InfoNote>
         )}
         <div className="space-y-2.5">
           <Button size="lg" className="w-full" onClick={() => setView("main")}>
-            العودة إلى يومي الطبيعي
+            الرجوع ليومي الطبيعي
           </Button>
           <Button
             variant="outline"
@@ -421,7 +421,7 @@ export function RelapseScreen() {
             onClick={() => relapseId && openReview(relapseId)}
           >
             <BookOpen className="size-4" />
-            حلّل بهدوء الآن (إن كنت مستعدًا)
+            حلّل بهدوء دلوقتي (لو مستعد)
           </Button>
         </div>
       </div>
@@ -446,8 +446,8 @@ export function RelapseScreen() {
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="المراجعة الهادئة تنتظرك هنا بعد كده، لما تكون مستعدًا."
-          subtitle="الهدف مش «ليه أنا ضعيف» — الهدف: نلاقي أبكر نقطة كان ممكن توقف عندها."
+          title="المراجعة الهادئة مستنياك هنا بعد كده، لما تكون مستعد."
+          subtitle="الهدف مش «ليه أنا ضعيف» — الهدف إننا نلاقي أبكر نقطة كان ممكن توقف عندها."
           icon={<BookOpen className="size-5" />}
         />
         <StepDots total={totalSteps} current={reviewStep} />
@@ -455,7 +455,7 @@ export function RelapseScreen() {
         {reviewStep === 0 && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="font-semibold">١ · ما الذي بدأ الأمر؟</div>
+              <div className="font-semibold">١ · إيه اللي بدأ الموضوع؟</div>
               <div className="flex flex-wrap gap-2">
                 {TRIGGERS.slice(0, 12).map((t) => (
                   <Chip
@@ -474,7 +474,7 @@ export function RelapseScreen() {
         {reviewStep === 1 && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="font-semibold">٢ · ما الذي جعل المقاومة أضعف يومها؟</div>
+              <div className="font-semibold">٢ · إيه اللي خلّى مقاومتك أضعف اليوم ده؟</div>
               <ChipMultiSelect
                 size="sm"
                 options={VULNERABILITY_FACTORS}
@@ -488,7 +488,7 @@ export function RelapseScreen() {
         {reviewStep === 2 && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="font-semibold">٣ · ما أول علامة ظهرت قبل السلوك؟</div>
+              <div className="font-semibold">٣ · إيه أول علامة ظهرت قبل السلوك؟</div>
               <div className="flex flex-wrap gap-2">
                 {EARLY_WARNING_SIGNS.map((s) => (
                   <Chip
@@ -513,7 +513,7 @@ export function RelapseScreen() {
         {reviewStep === 3 && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="font-semibold">٤ · ما أول فعل قادك إلى السلوك؟</div>
+              <div className="font-semibold">٤ · إيه أول فعل وصّلك للسلوك؟</div>
               <Textarea
                 value={rFirstAction}
                 onChange={(e) => setRFirstAction(e.target.value)}
@@ -527,11 +527,11 @@ export function RelapseScreen() {
         {reviewStep === 4 && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="font-semibold">٥ · في أي لحظة كبر الأمر؟</div>
+              <div className="font-semibold">٥ · إمتى الموضوع كبر؟</div>
               <Textarea
                 value={rEscalation}
                 onChange={(e) => setREscalation(e.target.value)}
-                placeholder="مثال: بقيت في الغرفة بدل الخروج، و«دقيقة واحدة» صارت جلسة…"
+                placeholder="مثال: فضلت في الغرفة بدل ما أخرج، و«دقيقة واحدة» بقت جلسة…"
                 className="min-h-20 text-sm"
               />
             </CardContent>
@@ -542,15 +542,15 @@ export function RelapseScreen() {
           <Card>
             <CardContent className="space-y-4 pt-5">
               <div className="font-semibold">
-                ٦ · أين كان يمكن التوقف مبكرًا؟ (نقطة القطع الأفضل)
+                ٦ · فين كان ممكن توقف بدري؟ (نقطة القطع الأفضل)
               </div>
               <Textarea
                 value={rCutPoint}
                 onChange={(e) => setRCutPoint(e.target.value)}
-                placeholder="مثال: قبل فتح المتصفح — أو لحظة أول فكرة والانتقال مباشرة…"
+                placeholder="مثال: قبل ما تفتح المتصفح — أو لحظة أول فكرة والانتقال مباشرة…"
                 className="min-h-20 text-sm"
               />
-              <div className="font-semibold">درس واحد تحفظه:</div>
+              <div className="font-semibold">درس واحد تفتكره:</div>
               <Textarea
                 value={rLesson}
                 onChange={(e) => setRLesson(e.target.value)}
@@ -574,7 +574,7 @@ export function RelapseScreen() {
               )}
               {suggestedAdded && (
                 <InfoNote tone="success">
-                  أُضيفت القاعدة إلى خطة الوقاية — يمكنك تعديلها هناك متى شئت.
+                  اتضافت القاعدة لخطة الوقاية — تقدر تعدّلها هناك وقت ما تحب.
                 </InfoNote>
               )}
             </CardContent>
@@ -605,14 +605,13 @@ export function RelapseScreen() {
   return (
     <div className="space-y-5">
       <ScreenHeader
-        title="أُضيفت القاعدة إلى خطة الوقاية — تقدر تعدّلها هناك إمتى شئت."
-        subtitle="حصلت زَلّة؟ ما تكملش — إيقاف فوري، وبعدها نفهم اللي حصل بهدوء."
+        title="حصلت زَلّة؟ ما تكملش — نوقف فورًا، وبعدين نفهم اللي حصل بهدوء."
         icon={<LifeBuoy className="size-5" />}
       />
 
       <Button size="lg" variant="destructive" className="h-16 w-full text-lg font-bold" onClick={startStop}>
         <Siren className="size-6" />
-        حصلت الآن — أوقفها هنا
+        حصلت دلوقتي — وقّفها هنا
       </Button>
 
       {pendingReview.length > 0 && (
@@ -620,10 +619,10 @@ export function RelapseScreen() {
           <CardContent className="space-y-3 pt-5">
             <div className="flex items-center gap-2 font-bold">
               <Clock className="size-4 text-warning" />
-              مراجعات هادئة بانتظارك ({pendingReview.length})
+              عندك مراجعات هادئة مستنياك ({pendingReview.length})
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              حلّلها حين تهدأ — كل مراجعة بتحوّل اللي حصل إلى قاعدة وقاية جديدة.
+              راجعها لما تهدى — كل مراجعة بتحوّل اللي حصل لقاعدة وقاية جديدة.
             </p>
             {pendingReview.slice(0, 3).map((e) => (
               <Button
@@ -653,7 +652,7 @@ export function RelapseScreen() {
                 : `~${metrics.avgStopMinutes} دقيقة`
               : "—"
           }
-          hint="حلّلها لما تهدأ — كل مراجعة بتحوّل اللي حصل إلى قاعدة وقاية جديدة."
+          hint="راجع اللي حصل بهدوء — كل مراجعة بتديك قاعدة وقاية جديدة."
           direction={metrics.stopTrend === "better" ? "up" : undefined}
         />
         <StatTile
@@ -672,8 +671,8 @@ export function RelapseScreen() {
           </div>
           {events.length === 0 ? (
             <EmptyState
-              title="لا سجل بعد"
-              body="هذا مكان آمن بلا أحكام: إن حصلت زَلّة أو انتكاسة، ستجد هنا خطوة إيقاف ومراجعة هادئة."
+              title="مفيش سجل لسه"
+              body="ده مكان آمن من غير أحكام: لو حصلت زَلّة أو انتكاسة، هتلاقي هنا خطوة توقف ومراجعة هادئة."
             />
           ) : (
             <div className="max-h-96 space-y-2 overflow-y-auto pl-1">
@@ -709,7 +708,7 @@ export function RelapseScreen() {
                           e.continued ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"
                         }`}
                       >
-                        {e.continued ? "ده مكان آمن بلا أحكام: إن حصلت زَلّة أو انتكاسة، ستجد هنا خطوة إيقاف ومراجعة هادئة." : "أوقف عند حدّه"}
+                        {e.continued ? "مفيش سجل لسه / ده مكان آمن من غير أحكام: لو حصلت زَلّة أو انتكاسة، هتلاقي هنا خطوة توقف ومراجعة هادئة." : "اتوقفت عند حدّها"}
                       </span>
                       {e.reviewed && (
                         <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
@@ -721,7 +720,7 @@ export function RelapseScreen() {
                   <div className="flex shrink-0 items-center gap-1">
                     {!e.reviewed && (
                       <Button variant="ghost" size="sm" onClick={() => openReview(e.id)}>
-                        حلّل
+                        راجع
                       </Button>
                     )}
                     <Button
@@ -741,8 +740,8 @@ export function RelapseScreen() {
       </Card>
 
       <InfoNote tone="warning">
-        لا عقاب ولا تعويض قاسٍ بعد ما حدث — الإنهاك والحرمان يزيدان الضيق الذي
-        يغذي الدورة نفسها. العودة الهادئة أسرع من العقاب.
+        لا عقاب ولا تعويض قاسي بعد اللي حصل — الإنهاك والحرمان بيزودوا الضيق اللي
+        بيغذي الدائرة نفسها. الرجوع بهدوء أسرع من العقاب.
       </InfoNote>
 
       <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => navigate("prevention")}>

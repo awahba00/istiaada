@@ -98,8 +98,7 @@ export function SettingsScreen() {
   return (
     <div className="space-y-5">
       <ScreenHeader
-        title="خصوصيتك أولًا — كل حاجة يعمل محليًا على جهازك."
-        subtitle="خصوصيتك أولًا — كل شيء يعمل محليًا على جهازك."
+        title="خصوصيتك أولًا — كل حاجة شغالة محليًا على جهازك."
         icon={<SettingsIcon className="size-5" />}
       />
 
@@ -111,10 +110,10 @@ export function SettingsScreen() {
             خصوصيتك
           </div>
           <ul className="space-y-1.5 text-sm leading-relaxed text-muted-foreground">
-            <li>• مفيش حساب، لا تسجيل دخول، ولا خادم يستقبل أي حاجة.</li>
-            <li>• امسح بياناتك إمتى شئت من دي الشاشة — والمحو نهائي.</li>
-            <li>• لا نطلب اسمك الحقيقي ولا أي تفاصيل صريحة.</li>
-            <li>• امسح بياناتك متى شئت من هذه الشاشة — والمحو نهائي.</li>
+            <li>• مفيش حساب، ولا تسجيل دخول، ولا خادم بيستقبل أي حاجة.</li>
+            <li>• امسح بياناتك من الشاشة دي وقت ما تحب — والمسح نهائي.</li>
+            <li>• مش بنطلب اسمك الحقيقي ولا أي تفاصيل صريحة.</li>
+            <li>• امسح بياناتك من الشاشة دي وقت ما تحب — والمسح نهائي.</li>
           </ul>
         </CardContent>
       </Card>
@@ -144,7 +143,7 @@ export function SettingsScreen() {
             </div>
           </div>
           <InfoNote>
-            تعديل التاريخ لا يمس أي سجل آخر — يغيّر عدّاد الرحلة ومرحلة المحتوى فقط.
+            تغيير التاريخ مش هيأثر على أي سجل تاني — هيغيّر بس عداد الرحلة ومرحلة المحتوى.
           </InfoNote>
         </CardContent>
       </Card>
@@ -154,14 +153,14 @@ export function SettingsScreen() {
         <CardContent className="space-y-3 pt-5">
           <div className="font-bold">المحتوى والدعم</div>
           <ToggleRow
-            title="صلاة، ذكر، توبة — بيظهر بس عند تفعيله"
+            title="صلاة، ذكر، توبة — بتظهر بس عند تفعيلها"
             description="جرعة تعلم يومية مخصصة على الرئيسية"
             checked={data.settings.dailyDoseEnabled}
             onCheckedChange={(v) => setSettings({ dailyDoseEnabled: v })}
           />
           <ToggleRow
             title="المحتوى الروحي/القيمي"
-            description="صلاة، ذكر، توبة — يظهر فقط عند تفعيله"
+            description="صلاة، ذكر، توبة — بتظهر بس عند تفعيلها"
             checked={data.settings.spiritualContent}
             onCheckedChange={(v) => setSettings({ spiritualContent: v })}
           />
@@ -210,7 +209,7 @@ export function SettingsScreen() {
         <CardContent className="space-y-3 pt-5">
           <div className="font-bold">بياناتك ملكك</div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            صدّر نسخة احتياطية بصيغة JSON مقروءة، أو استورد نسختك السابقة إلى أي جهاز.
+            صدّر نسخة احتياطية بصيغة JSON تقدر تقراها، أو استورد نسختك القديمة على أي جهاز.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" className="gap-1.5" onClick={downloadExport}>
@@ -236,8 +235,8 @@ export function SettingsScreen() {
                   <DialogTitle>استيراد نسخة احتياطية</DialogTitle>
                 </DialogHeader>
                 <div className="text-sm leading-relaxed text-muted-foreground">
-                  اختر ملف نسخة احتياطية صالحًا (.json). يُتحقق من سلامته قبل الاستبدال —
-                  وإن فشل التحقق تبقى بياناتك الحالية كما هي دون أي تغيير.
+                  اختار ملف نسخة احتياطية سليم (.json). بنتأكد من سلامته قبل الاستبدال —
+                  ولو التحقق فشل، بياناتك الحالية هتفضل زي ما هي من غير أي تغيير.
                 </div>
                 <RestoreBackup
                   hasExistingData={hasUserData(data)}
@@ -267,10 +266,9 @@ export function SettingsScreen() {
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-3xl">
               <AlertDialogHeader>
-                <AlertDialogTitle>مسح كل شيء نهائيًا؟</AlertDialogTitle>
+                <AlertDialogTitle>مسح كل حاجة نهائيًا؟</AlertDialogTitle>
                 <AlertDialogDescription className="leading-relaxed">
-                  سيُمحى سجلّك كله (فحوصات، مراجعات، خطة، قواعد) من هذا الجهاز ولا يمكن
-                  استرجاعه. صدّر نسخة احتياطية أولًا إن أردت الحفاظ عليها.
+                  كل بياناتك هتتمسح (فحوصات، مراجعات، خطة، قواعد) من الجهاز ده ومش هتقدر ترجعها. صدّر نسخة احتياطية الأول لو عايز تحافظ عليها.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -292,7 +290,7 @@ export function SettingsScreen() {
         <CardContent className="space-y-3 pt-5">
           <div className="flex items-center gap-2 font-bold">
             <LifeBuoy className="size-4 text-primary" />
-            متى تطلب دعمًا مهنيًا؟
+            إمتى تحتاج دعم مهني؟
           </div>
           <ul className="space-y-1.5 text-sm leading-relaxed text-muted-foreground">
             {WHEN_TO_SEEK_HELP.map((w) => (
@@ -300,8 +298,7 @@ export function SettingsScreen() {
             ))}
           </ul>
           <InfoNote>
-            هذا التطبيق أداة مساعدة ذاتية سلوكية — ليس تشخيصًا ولا علاجًا طبيًا ولا
-            بديلًا عن مختص. طلب المساعدة قوة، وليس اعترافًا بالفشل.
+            التطبيق ده أداة مساعدة ذاتية سلوكية — مش تشخيص، ولا علاج طبي، ولا بديل عن مختص. طلب المساعدة قوة، مش اعتراف بالفشل.
           </InfoNote>
           <p className="text-center text-[11px] text-muted-foreground">
             استعادة · نسخة {APP_VERSION} · يعمل محليًا بالكامل

@@ -59,7 +59,7 @@ export function PreventionScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title="خطة الوقاية"
-        subtitle="قواعد «إذا… إذن» وحمايتك الرقمية — تُصنع في الهدوء لتعمل وقت العاصفة."
+        subtitle="قواعد «إذا… إذن» وحمايتك الرقمية — بتتعمل في الهدوء عشان تشتغل وقت العاصفة."
         icon={<ShieldCheck className="size-5" />}
       />
 
@@ -85,7 +85,7 @@ export function PreventionScreen() {
 
           {data.preventionRules.length === 0 && (
             <p className="text-sm leading-relaxed text-muted-foreground">
-              لا قواعد بعد — أضف قاعدة لأكثر سياقاتك خطورة.
+              لسه مفيش قواعد — أضف قاعدة لأكتر سياقاتك خطورة.
             </p>
           )}
 
@@ -175,7 +175,7 @@ export function PreventionScreen() {
           </div>
           <InfoNote tone="warning">{DIGITAL_PROTECTION_HONESTY}</InfoNote>
           <InfoNote>
-            لا تضبط هذه الأدوات أثناء أزمة (درجة الحالة ٥) — جهّزها مسبقًا في وقت هادئ.
+            ما تضبطش الأدوات دي أثناء الأزمة (درجة الحالة ٥) — جهّزها من قبل في وقت هادي.
           </InfoNote>
         </CardContent>
       </Card>
@@ -188,20 +188,19 @@ export function PreventionScreen() {
             شخص دعم (اختياري تمامًا)
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            شخص تثق به — يظهر زر اتصاله في التصعيد. لن يُكشف له أي شيء تلقائيًا؛ الرسائل
-            محايدة تمامًا.
+            شخص تثق فيه — هيظهر لك زر الاتصال بيه وقت التصعيد. مش هيتكشف له أي حاجة تلقائيًا؛ الرسائل محايدة خالص.
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Input
               value={spLabel}
               onChange={(e) => setSpLabel(e.target.value)}
-              placeholder="لا تضبط دي الأدوات أثناء أزمة (درجة الحالة ٥) — جهّزها قبل كده في وقت هادئ."
+              placeholder="شخص تثق به — بيظهر زر اتصاله في التصعيد. لن يُكشف له أي حاجة تلقائيًا؛ الرسائل محايدة خالص."
               className="bg-background text-sm"
             />
             <Input
               value={spPhone}
               onChange={(e) => setSpPhone(e.target.value)}
-              placeholder="شخص تثق به — بيظهر زر اتصاله في التصعيد. لن يُكشف له أي حاجة تلقائيًا؛ الرسائل محايدة خالص."
+              placeholder="رقمه (يُخزن محليًا بس)"
               inputMode="tel"
               className="bg-background text-sm"
               dir="ltr"
@@ -236,7 +235,7 @@ export function PreventionScreen() {
           </div>
           <div className="rounded-xl bg-muted/50 p-3">
             <div className="mb-1.5 text-xs font-bold text-muted-foreground">
-              قوالب رسائل محايدة (انسخها عند الحاجة):
+              قوالب رسائل محايدة (انسخها وقت ما تحتاج):
             </div>
             <div className="flex flex-wrap gap-1.5">
               {SUPPORT_MESSAGE_TEMPLATES.map((t) => (
@@ -253,7 +252,7 @@ export function PreventionScreen() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="rounded-3xl sm:max-w-md" aria-describedby={undefined}>
           <DialogHeader className="text-start">
-            <DialogTitle>{editingId ? "قوالب رسائل محايدة (انسخها وقت ما محتاج):" : "قاعدة وقاية جديدة"}</DialogTitle>
+            <DialogTitle>{editingId ? "تعديل" : "قاعدة وقاية جديدة"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -261,12 +260,12 @@ export function PreventionScreen() {
                 <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-bold text-warning">
                   إذا
                 </span>{" "}
-                حدث ماذا؟
+                إيه اللي حصل؟
               </div>
               <Textarea
                 value={ifText}
                 onChange={(e) => setIfText(e.target.value)}
-                placeholder="مثال: شعرت بالملل والتقطت الهاتف بلا هدف…"
+                placeholder="مثال: حسّيت بالملل ومسكت الهاتف من غير هدف…"
                 className="min-h-20 text-sm"
               />
             </div>
@@ -275,17 +274,17 @@ export function PreventionScreen() {
                 <span className="rounded bg-success/15 px-1.5 py-0.5 text-[11px] font-bold text-success">
                   إذن
                 </span>{" "}
-                ماذا أفعل فورًا؟
+                أعمل إيه فورًا؟
               </div>
               <Textarea
                 value={thenText}
                 onChange={(e) => setThenText(e.target.value)}
-                placeholder="مثال: أغلقه وأنهض وأمشي ١٠ دقائق…"
+                placeholder="مثال: اقفله وقوم وامشي ١٠ دقايق…"
                 className="min-h-20 text-sm"
               />
             </div>
             <Button className="w-full" onClick={saveRule} disabled={!ifText.trim() || !thenText.trim()}>
-              {editingId ? "مثال: حسّيت بالملل والتقطت الهاتف بلا هدف…" : "أضف القاعدة"}
+              {editingId ? "حفظ التعديل" : "أضف القاعدة"}
             </Button>
           </div>
         </DialogContent>

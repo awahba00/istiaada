@@ -66,14 +66,14 @@ export function RestoreBackup({
   const onFile = async (f: File | null) => {
     if (!f) return;
     if (f.size > MAX_BACKUP_BYTES) {
-      setResult({ ok: false, error: "الملف كبير جدًا — ليس ملف نسخة احتياطية صالحًا." });
+      setResult({ ok: false, error: "الملف كبير جدًا — ومش نسخة احتياطية سليمة." });
       return;
     }
     try {
       const text = await f.text();
       updateRaw(text, f.name);
     } catch {
-      setResult({ ok: false, error: "تعذر قراءة الملف — حاول تاني." });
+      setResult({ ok: false, error: "ما قدرناش نقرأ الملف — جرّب تاني." });
     }
   };
 
@@ -110,7 +110,7 @@ export function RestoreBackup({
         onClick={() => fileRef.current?.click()}
       >
         <Upload className="size-5" />
-        اختر ملف النسخة الاحتياطية (.json)
+        اختار ملف النسخة الاحتياطية (.json)
       </Button>
 
       {/* Paste fallback */}
@@ -127,7 +127,7 @@ export function RestoreBackup({
         <textarea
           value={raw}
           onChange={(e) => updateRaw(e.target.value, null)}
-          placeholder="ألصق محتوى ملف JSON هنا…"
+          placeholder="الصق محتوى ملف JSON هنا…"
           dir="ltr"
           className="min-h-28 w-full rounded-xl border border-border bg-background p-3 font-mono text-xs leading-relaxed"
         />
@@ -146,7 +146,7 @@ export function RestoreBackup({
             <>
               <div className="flex items-center gap-2 font-bold text-primary">
                 <FileJson className="size-4" />
-                {fileName ?? "نسخة احتياطية صالحة"}
+                {fileName ?? "نسخة احتياطية سليمة"}
               </div>
               <ul className="mt-2 space-y-1 text-muted-foreground">
                 {preview.summary.exportedAt && (
@@ -163,8 +163,7 @@ export function RestoreBackup({
                 <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-warning/10 p-2.5 text-xs">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
                   <span>
-                    استعادة النسخة الاحتياطية ستستبدل بياناتك الحالية — سيُطلب تأكيدك
-                    قبل ذلك.
+                    النسخة الاحتياطية هتستبدل بياناتك الحالية — وهنطلب منك تأكيد قبل ما نكمّل.
                   </span>
                 </div>
               )}
@@ -172,7 +171,7 @@ export function RestoreBackup({
           ) : (
             <div className="flex items-start gap-2 font-medium text-destructive">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-              <span>{preview.error ?? "الملف غير صالح."}</span>
+              <span>{preview.error ?? "الملف مش صالح."}</span>
             </div>
           )}
         </div>
@@ -193,11 +192,11 @@ export function RestoreBackup({
             <div className="space-y-1">
               <div className="flex items-center gap-2 font-bold">
                 <Check className="size-4 shrink-0" />
-                تمت الاستعادة بنجاح
+                استرجاع النسخة تم بنجاح
               </div>
               <p className="text-success/90">
-                بياناتك كما كانت يوم صدّرت النسخة. أغلق هذه النافذة وستجد كل شيء في
-                مكانه — التطبيق يعمل الآن ببياناتك المستعادة.
+                بياناتك رجعت زي يوم ما صدّرت النسخة. اقفل النافذة دي وهتلاقي كل حاجة في
+                مكانها — التطبيق شغال دلوقتي ببياناتك المستعادة.
               </p>
             </div>
           ) : (
@@ -228,14 +227,14 @@ export function RestoreBackup({
             and triggers the "Missing Description" warning. */}
         <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>استرجاع النسخة الاحتياطية هيستبدل بياناتك الحالية. تحب تكمل؟</AlertDialogTitle>
+            <AlertDialogTitle>النسخة الاحتياطية هتستبدل بياناتك الحالية. تحب تكمّل؟</AlertDialogTitle>
             <AlertDialogDescription className="leading-relaxed">
-              استعادة النسخة الاحتياطية ستستبدل بياناتك الحالية. هل تريد المتابعة؟
+              النسخة الاحتياطية هتستبدل بياناتك الحالية. تحب تكمّل؟
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>تراجع</AlertDialogCancel>
-            <AlertDialogAction onClick={doImport}>نعم، استعِد النسخة</AlertDialogAction>
+            <AlertDialogCancel>رجوع</AlertDialogCancel>
+            <AlertDialogAction onClick={doImport}>أيوه، استرجع النسخة</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
