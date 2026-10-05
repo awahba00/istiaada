@@ -124,7 +124,7 @@ export function ProgressScreen() {
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <StatTile
-              label="سرعة التوقف"
+              label="متوسط مدة الجلسة"
               value={
                 m.avgStopMinutes != null
                   ? m.avgStopMinutes < 5

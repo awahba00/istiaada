@@ -48,10 +48,17 @@ const STOP_STEPS = [
 
 const TIME_TO_STOP_OPTIONS: { id: TimeToStop; label: string }[] = [
   { id: "immediately", label: "وقفت فورًا" },
-  { id: "minutes", label: "خلال دقايق" },
-  { id: "under-hour", label: "أقل من ساعة" },
-  { id: "longer", label: "أخذ وقت أطول" },
+  { id: "minutes", label: "أقل من 15 دقيقة" },
+  { id: "under-hour", label: "أكتر من 15 دقيقة وأقل من ساعة" },
+  { id: "longer", label: "ساعة أو أكتر" },
 ];
+
+// Q4 (session duration) offers exactly these 3 buckets. The legacy
+// "immediately" option above is kept ONLY so old history chips still
+// resolve — it is never offered to new logs.
+const TIME_TO_STOP_QUICK_OPTIONS = TIME_TO_STOP_OPTIONS.filter(
+  (o) => o.id !== "immediately"
+);
 
 /** Phase 2B.2 — behavior types (user-facing labels, Arabic only). */
 const BEHAVIOR_OPTIONS: { id: RelapseBehavior; label: string }[] = [
@@ -84,6 +91,17 @@ const behaviorsLabel = (e: RelapseEvent): string | null => {
   if (!e.behaviors || e.behaviors.length === 0) return null;
   if (e.behaviors.length === 2) return "حسّيت أنني عدت إلى النمط القديم";
   return BEHAVIOR_OPTIONS.find((b) => b.id === e.behaviors![0])?.label ?? null;
+};
+
+/** Q5 (continuation) chip for history — rendered ONLY for events where the
+ *  question was actually asked (masturbation among behaviors). Porn-only
+ *  events were never asked → no chip. Legacy events without behaviors keep
+ *  displaying their stored value. */
+const continuedLabel = (e: RelapseEvent): string | null => {
+  if (e.behaviors && e.behaviors.length > 0 && !e.behaviors.includes("masturbation")) {
+    return null;
+  }
+  return e.continued ? "كمّلت الجلسة" : "اتوقفت عند حدّها";
 };
 
 export function RelapseScreen() {
@@ -140,6 +158,8 @@ export function RelapseScreen() {
     const id = addRelapseQuick({
       ts: nowIso(),
       timeToStop: qTime ?? "minutes",
+      // Schema requires a boolean here. When Q5 was never shown (porn-only
+      // log) there is no answer to inherit — store false.
       continued: qContinued ?? false,
       triggers: qTriggers,
       quickTs: nowIso(),
@@ -267,8 +287,14 @@ export function RelapseScreen() {
 
   // ————— QUICK LOG —————
   if (view === "quick") {
+    // Q5 «كمّلت بعد أول مرة؟» is only asked when masturbation is among the
+    // logged behaviors — porn-only episodes have no continuation question.
+    const asksContinued = qBehaviors.includes("masturbation");
     const canSaveQuick =
-      qBehaviors.length > 0 && qClassification != null && qTime != null && qContinued != null;
+      qBehaviors.length > 0 &&
+      qClassification != null &&
+      qTime != null &&
+      (!asksContinued || qContinued != null);
     return (
       <div className="space-y-5">
         <ScreenHeader
@@ -286,11 +312,16 @@ export function RelapseScreen() {
                   label={o.label}
                   selected={qBehaviors.includes(o.id)}
                   onClick={() =>
-                    setQBehaviors((prev) =>
-                      prev.includes(o.id)
+                    setQBehaviors((prev) => {
+                      const next = prev.includes(o.id)
                         ? prev.filter((b) => b !== o.id)
-                        : [...prev, o.id]
-                    )
+                        : [...prev, o.id];
+                      // Dropping masturbation hides Q5 — purge any stale
+                      // answer so it can neither leak into the saved event
+                      // nor reappear pre-selected if it is re-added.
+                      if (!next.includes("masturbation")) setQContinued(null);
+                      return next;
+                    })
                   }
                 />
               ))}
@@ -339,9 +370,9 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">وقفت بعد قد إيه؟</div>
+            <div className="text-sm font-semibold">الجلسة استمرت قد إيه؟</div>
             <div className="flex flex-wrap gap-2">
-              {TIME_TO_STOP_OPTIONS.map((o) => (
+              {TIME_TO_STOP_QUICK_OPTIONS.map((o) => (
                 <Chip
                   key={o.id}
                   label={o.label}
@@ -352,15 +383,17 @@ export function RelapseScreen() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">كمّلت بعد أول مرة؟</div>
-            <div className="flex gap-2">
-              <Chip label="تصنيفك أنت — التطبيق مش هو اللي يقرر عنك." selected={qContinued === false} onClick={() => setQContinued(false)} />
-              <Chip label="أيوه، كمّلت الجلسة" selected={qContinued === true} onClick={() => setQContinued(true)} />
-            </div>
-          </CardContent>
-        </Card>
+        {asksContinued && (
+          <Card>
+            <CardContent className="space-y-3 pt-5">
+              <div className="text-sm font-semibold">كمّلت بعد أول مرة؟</div>
+              <div className="flex gap-2">
+                <Chip label="لأ — وقفت عند أولها" selected={qContinued === false} onClick={() => setQContinued(false)} />
+                <Chip label="أيوه، كمّلت الجلسة" selected={qContinued === true} onClick={() => setQContinued(true)} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Button size="lg" className="w-full" onClick={saveQuick} disabled={!canSaveQuick}>
           احفظ وكمل
         </Button>
@@ -384,7 +417,15 @@ export function RelapseScreen() {
         <div className="space-y-3">
           {[
             "اللي حصل مش بيحدد مستقبلك.",
-            "لأ — وقفت عند أولها",
+            // The continuation bullet reflects the actual answer — shown
+            // only when Q5 was asked (masturbation among behaviors).
+            ...(savedEvent?.behaviors?.includes("masturbation")
+              ? [
+                  savedEvent.continued
+                    ? "كمّلت — بس الوقفة هنا أهم خطوة."
+                    : "لأ — وقفت عند أولها",
+                ]
+              : []),
             "اللي حصل مش يوم ضاع، ولا إذن بالتكملة — الوقفة دلوقتي قرار جديد.",
             "اللي حصل معلومة — استخدمها في تحسين خطة الأيام الجاية.",
           ].map((t) => (
@@ -644,7 +685,7 @@ export function RelapseScreen() {
 
       <div className="grid grid-cols-2 gap-2.5">
         <StatTile
-          label="حصلت دلوقتي — وقّفها هنا"
+          label="متوسط مدة الجلسة"
           value={
             metrics.avgStopMinutes != null
               ? metrics.avgStopMinutes < 5
@@ -703,13 +744,15 @@ export function RelapseScreen() {
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
                         {TIME_TO_STOP_OPTIONS.find((t) => t.id === e.timeToStop)?.label}
                       </span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] ${
-                          e.continued ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"
-                        }`}
-                      >
-                        {e.continued ? "مفيش سجل لسه / ده مكان آمن من غير أحكام: لو حصلت زَلّة أو انتكاسة، هتلاقي هنا خطوة توقف ومراجعة هادئة." : "اتوقفت عند حدّها"}
-                      </span>
+                      {continuedLabel(e) && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] ${
+                            e.continued ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"
+                          }`}
+                        >
+                          {continuedLabel(e)}
+                        </span>
+                      )}
                       {e.reviewed && (
                         <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
                           مُراجَع

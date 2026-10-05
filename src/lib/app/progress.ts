@@ -30,6 +30,8 @@ export function computeProgress(data: AppData): ProgressMetrics {
   const now = Date.now();
   const since7 = now - 7 * 86400000;
   const since30 = now - 30 * 86400000;
+  // Comparison window for stopTrend: days 31–60 before now.
+  const since60 = now - 60 * 86400000;
 
   const handled = data.urgeChecks.filter((c) => c.outcome === "handled");
   const handled7 = handled.filter((c) => new Date(c.ts).getTime() > since7);
@@ -47,7 +49,13 @@ export function computeProgress(data: AppData): ProgressMetrics {
     t === "immediately" ? 2 : t === "minutes" ? 10 : t === "under-hour" ? 45 : 120;
 
   const recentRel = relapses.filter((r) => new Date(r.ts).getTime() > since30);
-  const olderRel = relapses.filter((r) => new Date(r.ts).getTime() <= since30 && new Date(r.ts).getTime() > since30 * 2);
+  // Fixed: the old upper bound `since30 * 2` is a FUTURE timestamp, so
+  // olderRel was always empty and stopTrend was permanently null. The
+  // comparison window is now days 31–60 before now.
+  const olderRel = relapses.filter((r) => {
+    const t = new Date(r.ts).getTime();
+    return t <= since30 && t > since60;
+  });
 
   const avgStop = recentRel.length
     ? recentRel.reduce((s, r) => s + stopMinutes(r.timeToStop), 0) / recentRel.length
