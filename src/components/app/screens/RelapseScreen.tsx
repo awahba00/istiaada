@@ -101,7 +101,7 @@ const continuedLabel = (e: RelapseEvent): string | null => {
   if (e.behaviors && e.behaviors.length > 0 && !e.behaviors.includes("masturbation")) {
     return null;
   }
-  return e.continued ? "كمّلت الجلسة" : "اتوقفت عند حدّها";
+  return e.continued ? "أكتر من مرة" : "مرة واحدة";
 };
 
 export function RelapseScreen() {
@@ -287,7 +287,7 @@ export function RelapseScreen() {
 
   // ————— QUICK LOG —————
   if (view === "quick") {
-    // Q5 «كمّلت بعد أول مرة؟» is only asked when masturbation is among the
+    // Q5 «حصل مرة ولا أكتر؟» is only asked when masturbation is among the
     // logged behaviors — porn-only episodes have no continuation question.
     const asksContinued = qBehaviors.includes("masturbation");
     const canSaveQuick =
@@ -386,10 +386,10 @@ export function RelapseScreen() {
         {asksContinued && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="text-sm font-semibold">كمّلت بعد أول مرة؟</div>
+              <div className="text-sm font-semibold">حصل مرة ولا أكتر؟</div>
               <div className="flex gap-2">
-                <Chip label="لأ — وقفت عند أولها" selected={qContinued === false} onClick={() => setQContinued(false)} />
-                <Chip label="أيوه، كمّلت الجلسة" selected={qContinued === true} onClick={() => setQContinued(true)} />
+                <Chip label="مرة واحدة" selected={qContinued === false} onClick={() => setQContinued(false)} />
+                <Chip label="أكتر من مرة" selected={qContinued === true} onClick={() => setQContinued(true)} />
               </div>
             </CardContent>
           </Card>
@@ -422,8 +422,8 @@ export function RelapseScreen() {
             ...(savedEvent?.behaviors?.includes("masturbation")
               ? [
                   savedEvent.continued
-                    ? "كمّلت — بس الوقفة هنا أهم خطوة."
-                    : "لأ — وقفت عند أولها",
+                    ? "أكتر من مرة — بس الوقفة هنا أهم خطوة."
+                    : "مرة واحدة — والرجوع بعدها هو المهم.",
                 ]
               : []),
             "اللي حصل مش يوم ضاع، ولا إذن بالتكملة — الوقفة دلوقتي قرار جديد.",
