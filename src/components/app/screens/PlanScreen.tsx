@@ -411,8 +411,15 @@ function EveningCheckInDialog({
               </div>
               <div>
                 <div className="mb-2 text-sm font-semibold">٢ · المحفز الأساسي النهارده؟</div>
+                {/* B1 — full 24-trigger taxonomy, same source as Quick Log /
+                    Urge check / calm review (was slice(0,10), which hid all
+                    digital, situational and habitual triggers). Selection
+                    keeps storing the LABEL on purpose: existing stored values
+                    are labels, chips match by label (legacy edits light up
+                    correctly), and the validator accepts any string — no
+                    representation change, no migration, no reinterpretation. */}
                 <div className="flex flex-wrap gap-1.5">
-                  {TRIGGERS.slice(0, 10).map((t) => (
+                  {TRIGGERS.map((t) => (
                     <Chip
                       key={t.id}
                       size="sm"

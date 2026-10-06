@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ScreenHeader,
   InfoNote,
   ChipMultiSelect,
@@ -106,16 +116,26 @@ const continuedLabel = (e: RelapseEvent): string | null => {
   return e.continued ? "أكتر من مرة" : "مرة واحدة";
 };
 
+/** Trigger id → user-facing label (falls back to the raw value for
+ *  hand-edited imports that stored labels in event.triggers). */
+const triggerLabel = (id: string): string =>
+  TRIGGERS.find((t) => t.id === id)?.label ?? id;
+
 export function RelapseScreen() {
   const data = useAppStore();
   const addRelapseQuick = useAppStore((s) => s.addRelapseQuick);
   const completeRelapseReview = useAppStore((s) => s.completeRelapseReview);
+  const deleteRelapse = useAppStore((s) => s.deleteRelapse);
   const addRule = useAppStore((s) => s.addRule);
   const navigate = useAppStore((s) => s.navigate);
 
   const [view, setView] = useState<View>("main");
   const [stopStep, setStopStep] = useState(0);
   const [relapseId, setRelapseId] = useState<string | null>(null);
+  // A5 — the event pending delete confirmation (null = dialog closed).
+  // The trash button only STAGES the event here; deletion happens solely in
+  // confirmDelete() so an accidental tap can never remove data directly.
+  const [deleteTarget, setDeleteTarget] = useState<RelapseEvent | null>(null);
 
   // quick log — Phase 2B.2: behavior + classification first, then the
   // existing episode details. All of it resets after save so the next
@@ -192,6 +212,13 @@ export function RelapseScreen() {
     setRCutPoint("");
     setRLesson("");
     setSuggestedAdded(false);
+    // A1 — prefill from the event's own Quick Log answer, but only when it
+    // is unambiguous (exactly ONE logged trigger): preselecting one of many
+    // would fabricate a narrowing the user never made. Multiple triggers
+    // are shown as CONTEXT in step 1 instead — the narrowing choice stays
+    // with the user (and the step is skippable when the answer is unknown).
+    const ev = events.find((e) => e.id === id);
+    if (ev && ev.triggers.length === 1) setRTrigger(ev.triggers[0]);
     setView("review");
   };
 
@@ -220,6 +247,14 @@ export function RelapseScreen() {
       source: "suggested",
     });
     setSuggestedAdded(true);
+  };
+
+  // A5 — confirm deletes EXACTLY the staged event; cancel only clears the
+  // staging state and leaves the event byte-identical.
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteRelapse(deleteTarget.id);
+    setDeleteTarget(null);
   };
 
   // ————— STOP FLOW —————
@@ -474,12 +509,12 @@ export function RelapseScreen() {
   // ————— CALM REVIEW WIZARD —————
   if (view === "review" && reviewTarget) {
     const totalSteps = 6;
+    // A1 — step 1 (trigger) is intentionally SKIPPABLE: the user must never
+    // be forced to invent a trigger they don't know (an empty answer is a
+    // real answer and validates in backup.ts). Step 3 (first sign) keeps its
+    // gate — it is the review's core reflection question.
     const canNextReview = () => {
       switch (reviewStep) {
-        case 0:
-          return rTrigger !== "";
-        case 1:
-          return true;
         case 2:
           return rFirstSign.trim() !== "";
         default:
@@ -499,8 +534,21 @@ export function RelapseScreen() {
           <Card>
             <CardContent className="space-y-3 pt-5">
               <div className="font-semibold">١ · إيه اللي بدأ الموضوع؟</div>
+              {/* A1 — the Quick Log answer is context, never a forced choice:
+                  one logged trigger is preselected (see openReview), several
+                  are listed so the user narrows to the one that STARTED it. */}
+              {reviewTarget.triggers.length > 0 && (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  من التسجيل السريع: {reviewTarget.triggers.map(triggerLabel).join("، ")}
+                  {reviewTarget.triggers.length > 1
+                    ? " — اختار اللي بدأ الموضوع الأول."
+                    : " — مختراه مبدئيًا."}
+                </p>
+              )}
+              {/* Full 24-trigger taxonomy — same source as Quick Log, the Urge
+                  check, and the evening review (no hidden slice). */}
               <div className="flex flex-wrap gap-2">
-                {TRIGGERS.slice(0, 12).map((t) => (
+                {TRIGGERS.map((t) => (
                   <Chip
                     key={t.id}
                     size="sm"
@@ -510,6 +558,9 @@ export function RelapseScreen() {
                   />
                 ))}
               </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                مش متأكد؟ اكمل من غير اختيار — الخطوة دي اختيارية.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -774,7 +825,7 @@ export function RelapseScreen() {
                       variant="ghost"
                       size="sm"
                       aria-label="حذف السجل"
-                      onClick={() => useAppStore.getState().deleteRelapse(e.id)}
+                      onClick={() => setDeleteTarget(e)}
                     >
                       <Trash2 className="size-4 text-muted-foreground" />
                     </Button>
@@ -795,6 +846,36 @@ export function RelapseScreen() {
         تحديث خطة الوقاية بعد كل زَلّة أو انتكاسة
         <ChevronLeft className="size-4" />
       </Button>
+
+      {/* A5 — destructive-action confirmation (same pattern as Settings /
+          RestoreBackup). Deletion stays explicit: the trash button stages the
+          event, cancel leaves it untouched, confirm removes exactly it. */}
+      <AlertDialog
+        open={deleteTarget != null}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف السجل نهائيًا؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">
+              {deleteTarget
+                ? `${classificationLabel(deleteTarget) ?? "السجل"} بتاريخ ${arabicDateTime(deleteTarget.ts)} هيتم حذفه نهائيًا وما ينفعش يترجع.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>رجوع</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف نهائي
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

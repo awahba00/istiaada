@@ -48,7 +48,7 @@ export function TriggerMapScreen() {
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="«المحفز» هو ما بدأ الموجة عادة — الملل، التصفح، التأخير… أنماطك بتترسم من سجلك تلقائيًا مع كل فحص رغبة."
+          title="خريطة المحفزات"
           subtitle="«المحفز» هو ما بدأ الموجة عادةً — الملل، التصفح، التأخير… أنماطك بتترسم من سجلك تلقائيًا مع كل فحص رغبة."
           icon={<Radar className="size-5" />}
         />
@@ -181,13 +181,20 @@ export function TriggerMapScreen() {
 
       {insights.topTrigger && (
         <InfoNote>
-          <b>أحسن تدخل عندك:</b> {insights.topTrigger.label} ({insights.topTrigger.count} مرة).
+          {/* B2 — the label must name what the note shows: the most
+              frequent TRIGGER (the old label «أحسن تدخل عندك» promised an
+              intervention this note does not contain). Data unchanged. */}
+          <b>محفزك الأكثر تكرارًا:</b> {insights.topTrigger.label} ({insights.topTrigger.count} مرة).
           أقوى تدخل له عادةً: تغيير البيئة فور ظهوره — قبل أي تفاوض داخلي.
         </InfoNote>
       )}
       {insights.bestIntervention && (
         <InfoNote tone="success">
-          <b>دي أنماط سلوكية مرصودة من سجلك — ومش تشخيص. الهدف العملي: أبكر نقطة تقدر توقف عندها.</b> {insights.bestIntervention.name} (نجح{" "}
+          {/* B2 — «أحسن تدخل عندك» belongs HERE: this note shows the
+              best intervention. The old version opened with the general
+              disclaimer — duplicated verbatim by the standalone InfoNote
+              at the bottom — which now remains its only home. */}
+          <b>أحسن تدخل عندك:</b> {insights.bestIntervention.name} (نجح{" "}
           {insights.bestIntervention.wins} مرة). النظام هيرجّحه تلقائيًا في المقترحات.
         </InfoNote>
       )}

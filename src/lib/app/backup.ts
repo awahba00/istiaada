@@ -153,6 +153,32 @@ function checkRelapseEvent(e: unknown): string | null {
     )
       return "أنواع سلوك غير صالحة في سجل الزلات والانتكاسات";
   }
+  // Review object — validated only when PRESENT (legacy events without a
+  // review remain valid; the store always writes review + reviewed together).
+  // Validation is deliberately TYPE-level, not content-level:
+  //   - trigger may be an id, a legacy label, or "" (the review's step 1 is
+  //     skippable — an empty answer is a real answer);
+  //   - no id allowlist, so backup validity is never coupled to taxonomy
+  //     content (future trigger edits must not invalidate old backups).
+  // The string checks below close the actual import hazard: a non-string
+  // cutPoint/lesson crashes computeInsights (`cutPoint.trim`) downstream.
+  // `review: null` is rejected — the store only ever writes the object or
+  // leaves it absent.
+  if (e.review !== undefined) {
+    const rv = e.review;
+    if (
+      !isObj(rv) ||
+      !isStr(rv.trigger) ||
+      !isStrArr(rv.vulnerabilities) ||
+      !isStr(rv.firstSign) ||
+      !isStr(rv.firstAction) ||
+      !isStr(rv.escalation) ||
+      !isBool(rv.extended) ||
+      !isStr(rv.cutPoint) ||
+      !isStr(rv.lesson)
+    )
+      return "مراجعة غير صالحة في سجل الزلات والانتكاسات";
+  }
   return null;
 }
 

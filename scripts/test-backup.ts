@@ -467,5 +467,280 @@ if (r16h.ok) {
   );
 }
 
+// ————— 17. Phase 3: relapse review object validation —————
+// The review object is user reflection data consumed downstream by
+// computeInsights (cutPoint.trim, firstSign, lesson). A malformed review
+// used to import silently and crash the Progress/TriggerMap screens.
+// Validation is TYPE-level only (see backup.ts): legacy events without a
+// review stay valid, unknown trigger ids / labels stay valid (taxonomy
+// content must never invalidate old backups), empty strings stay valid
+// (review step 1 is skippable — an empty answer is a real answer).
+console.log("== relapse review validation ==");
+const validReview = {
+  trigger: "boredom",
+  vulnerabilities: ["stress"],
+  firstSign: "سرحت في الخيال",
+  firstAction: "فتحت المتصفح",
+  escalation: "فضلت في الغرفة",
+  extended: false,
+  cutPoint: "قبل فتح المتصفح",
+  lesson: "درس",
+};
+
+// 17a. valid review accepted & preserved
+const r17a = validateBackup(
+  JSON.stringify({
+    app: "istiaada",
+    exportedAt: "2026-01-01T10:00:00.000Z",
+    data: {
+      ...validData,
+      relapseEvents: [{ ...baseRel, reviewed: true, review: validReview }],
+    },
+  })
+);
+check("valid review accepted", r17a.ok);
+if (r17a.ok) {
+  check(
+    "review preserved on import",
+    r17a.data.relapseEvents[0].review?.trigger === "boredom" &&
+      r17a.data.relapseEvents[0].review?.cutPoint === "قبل فتح المتصفح"
+  );
+}
+
+// 17b. legacy event WITHOUT review stays valid (review is optional)
+const r17b = validateBackup(
+  JSON.stringify({
+    app: "istiaada",
+    exportedAt: "2026-01-01T10:00:00.000Z",
+    data: { ...validData, relapseEvents: [{ ...baseRel }] },
+  })
+);
+check("legacy event without review accepted", r17b.ok);
+if (r17b.ok) {
+  check(
+    "no review fabricated on import",
+    r17b.data.relapseEvents[0].review === undefined
+  );
+}
+
+// 17c. review is not an object → rejected
+check(
+  "review non-object (string) rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: { ...validData, relapseEvents: [{ ...baseRel, reviewed: true, review: "تمت" }] },
+    })
+  ).ok
+);
+check(
+  "review null rejected (store writes the object or leaves it absent)",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: { ...validData, relapseEvents: [{ ...baseRel, reviewed: true, review: null }] },
+    })
+  ).ok
+);
+
+// 17d. wrong field TYPES → rejected (the import-crash hazards)
+// cutPoint as a number is the exact computeInsights crash case (.trim)
+check(
+  "review cutPoint number rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [{ ...baseRel, reviewed: true, review: { ...validReview, cutPoint: 42 } }],
+      },
+    })
+  ).ok
+);
+check(
+  "review trigger number rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [{ ...baseRel, reviewed: true, review: { ...validReview, trigger: 7 } }],
+      },
+    })
+  ).ok
+);
+check(
+  "review vulnerabilities string (not array) rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          { ...baseRel, reviewed: true, review: { ...validReview, vulnerabilities: "stress" } },
+        ],
+      },
+    })
+  ).ok
+);
+check(
+  "review vulnerabilities non-string item rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          { ...baseRel, reviewed: true, review: { ...validReview, vulnerabilities: ["stress", 5] } },
+        ],
+      },
+    })
+  ).ok
+);
+check(
+  "review extended string rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          { ...baseRel, reviewed: true, review: { ...validReview, extended: "لا" } },
+        ],
+      },
+    })
+  ).ok
+);
+check(
+  "review missing field (lesson absent) rejected",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          {
+            ...baseRel,
+            reviewed: true,
+            review: {
+              trigger: validReview.trigger,
+              vulnerabilities: validReview.vulnerabilities,
+              firstSign: validReview.firstSign,
+              firstAction: validReview.firstAction,
+              escalation: validReview.escalation,
+              extended: validReview.extended,
+              cutPoint: validReview.cutPoint,
+              // lesson intentionally absent
+            },
+          },
+        ],
+      },
+    })
+  ).ok
+);
+
+// 17e. content stays free-form — VALID by design
+// (type-level validation only: taxonomy edits must never invalidate old
+// backups, and a skipped trigger step stores "")
+check(
+  "review with unknown trigger id accepted (taxonomy-independent)",
+  validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          { ...baseRel, reviewed: true, review: { ...validReview, trigger: "old-removed-trigger" } },
+        ],
+      },
+    })
+  ).ok
+);
+check(
+  "review with legacy label trigger accepted",
+  validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [{ ...baseRel, reviewed: true, review: { ...validReview, trigger: "ملل" } }],
+      },
+    })
+  ).ok
+);
+check(
+  "review with empty strings accepted (skippable steps are real answers)",
+  validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          {
+            ...baseRel,
+            reviewed: true,
+            review: { ...validReview, trigger: "", vulnerabilities: [], firstSign: "" },
+          },
+        ],
+      },
+    })
+  ).ok
+);
+
+// 17f. atomic import: one malformed review rejects the WHOLE backup
+check(
+  "one malformed review rejects the whole import (atomicity)",
+  !validateBackup(
+    JSON.stringify({
+      app: "istiaada",
+      exportedAt: "2026-01-01T10:00:00.000Z",
+      data: {
+        ...validData,
+        relapseEvents: [
+          { ...baseRel, id: "rel-ok", reviewed: true, review: validReview },
+          { ...baseRel, id: "rel-bad", reviewed: true, review: { ...validReview, cutPoint: false } },
+        ],
+      },
+    })
+  ).ok
+);
+
+// 17g. round-trip: export → import preserves the review object
+// (typed via JSON round-trip like 15a — the plain literal widens
+// classification/timeToStop to string and would not satisfy AppData)
+const dataWithReview: AppData = JSON.parse(
+  JSON.stringify({
+    ...validData,
+    relapseEvents: [{ ...baseRel, reviewed: true, review: validReview }],
+  })
+);
+const r17g = validateBackup(buildBackupJson(dataWithReview));
+check("round-trip with review accepted", r17g.ok);
+if (r17g.ok) {
+  const rv = r17g.data.relapseEvents[0].review;
+  check(
+    "round-trip preserves every review field",
+    rv?.trigger === "boredom" &&
+      JSON.stringify(rv?.vulnerabilities) === JSON.stringify(["stress"]) &&
+      rv?.firstSign === "سرحت في الخيال" &&
+      rv?.firstAction === "فتحت المتصفح" &&
+      rv?.escalation === "فضلت في الغرفة" &&
+      rv?.extended === false &&
+      rv?.cutPoint === "قبل فتح المتصفح" &&
+      rv?.lesson === "درس"
+  );
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

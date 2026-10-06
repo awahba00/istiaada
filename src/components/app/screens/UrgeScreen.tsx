@@ -202,7 +202,14 @@ export function UrgeScreen() {
           <summary
             className="flex cursor-pointer select-none items-center justify-between gap-2 px-5 py-4 text-sm font-semibold [&::-webkit-details-marker]:hidden"
           >
-            <span>بعيد خالص</span>
+            {/* A3 — the collapsed label must say WHAT this section is for
+                (identifying the urge's triggers). The old label «بعيد خالص"
+                was a copy-paste of the proximity scale's low anchor and told
+                the user nothing. Phrasing matches the Quick Log's trigger
+                step («إيه اللي بدأ الموضوع؟») so one vocabulary runs
+                across the product. Optional on purpose — collapsed by
+                default, never required to compute the risk score. */}
+            <span>إيه اللي بدأ الرغبة دي؟ (اختياري)</span>
             <ChevronLeft className="size-4 shrink-0 text-muted-foreground transition-transform group-open:-rotate-90" />
           </summary>
           <div className="px-5 pb-5">
@@ -372,8 +379,17 @@ export function UrgeScreen() {
         {(mode === "emergency" || mode === "maximum") && (
           <div className="space-y-4">
             {mode === "maximum" && (
+              // A2 — the early-warning phrase and the action instruction are
+              // two separate lines (the old single line glued a stray list
+              // bullet «•» onto the bold phrase with no separation, reading
+              // as one garbled sentence). Sign first, action under it.
               <InfoNote tone="danger">
-                <b>• افتكر مشاهد أو تطوير خيال</b> اضغط الزر وابدأ أول خطوة قطع دلوقتي.
+                <span className="block font-semibold">
+                  افتكر مشاهد أو تطوير خيال
+                </span>
+                <span className="mt-1.5 block">
+                  اضغط الزر وابدأ أول خطوة قطع دلوقتي.
+                </span>
               </InfoNote>
             )}
             <Button
@@ -440,7 +456,13 @@ export function UrgeScreen() {
         >
           <Eye className="size-5 text-success" />
           <span>
-            <b>ابدأ التدخل المقترح دلوقتي</b>
+            {/* A2 — label must describe what the tap DOES: record the wave as
+                handled (intervention success + back to the day), matching the
+                header question «الخطر هبط ولا لسه؟». The old label was a
+                copy-paste of the interrupt-mode CTA («ابدأ التدخل المقترح
+                دلوقتي») — an instruction to START, on a screen where the
+                intervention is already done. */}
+            <b>أيوه — الرغبة هدّت</b>
             <span className="block text-xs font-normal text-muted-foreground">
               ارجع ليومك — الموجة دي اتسجلت وبتتحسب ليك
             </span>
@@ -468,7 +490,13 @@ export function UrgeScreen() {
         >
           <LifeBuoy className="size-5" />
           <span>
-            <b>اضغط الزر وابدأ أول خطوة قطع دلوقتي.</b>
+            {/* A2 — label must describe what the tap DOES: record outcome
+                «acted» and move to the «توقّف هنا» screen to quick-log what
+                happened. The old label («اضغط الزر وابدأ أول خطوة قطع
+                دلوقتي.») was a cutoff instruction pasted onto the honesty
+                exit. Phrasing matches EmergencyMode's own link to the same
+                screen («حصلت زَلّة؟ ما تكملش — نوقف هنا الأول»). */}
+            <b>حصلت زَلّة — نوقف هنا ونسجّلها</b>
             <span className="block text-xs font-normal text-muted-foreground">
               لا عقاب ولا جلد — المهم دلوقتي: ما تكمّلش
             </span>
