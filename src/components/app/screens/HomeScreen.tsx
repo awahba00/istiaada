@@ -261,9 +261,15 @@ export function HomeScreen() {
         </div>
       )}
 
-      {/* ————— Quick guide (stable state only — the state banner already
-          directs the action in every other state) ————— */}
-      {homeState === "normal" && (
+      {/* ————— Quick guide —————
+          ACT-FIRST 4+ (F): rendered in every state EXCEPT "high" (whose
+          banner already carries the destructive «تدخّل دلوقتي» button). The
+          state banner keeps priority — it stays ABOVE the guide — but the
+          emergency row («قربت تتصرف؟» → «تدخّل الآن») must never disappear
+          exactly when escalation is more likely: in moderate and
+          post-relapse the guide below the banner keeps it one honest tap
+          away, visually secondary but always reachable. */}
+      {homeState !== "high" && (
         <QuickGuide onEmergency={() => launchEmergency(4)} />
       )}
 

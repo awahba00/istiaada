@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Countdown } from "../Timer";
 import { selectIntervention, selectEscalation } from "@/lib/app/intervention-engine";
 import { nowIso, uid } from "@/lib/app/helpers";
-import { INTERVENTION_BY_ID } from "@/data/app/interventions";
+import { INTERVENTIONS } from "@/data/app/interventions";
 import { PERSONAL_WHY_REASONS, WORK_SAFE_STEPS, SUPPORT_MESSAGE_TEMPLATES } from "@/data/app/taxonomy";
 import type { Intervention } from "@/lib/app/types";
 import { Siren, Check, Phone, Users, LogOut, ArrowLeft, LifeBuoy } from "lucide-react";
@@ -23,6 +23,25 @@ import { Siren, Check, Phone, Users, LogOut, ArrowLeft, LifeBuoy } from "lucide-
  * the background shell (inert + aria-hidden) so focus can never escape into
  * it. The pre-overlay focus is restored on close. Escape is intentionally NOT
  * bound — exiting happens only through the explicit exit control.
+ *
+ * ACT-FIRST 4+ (A/B/D):
+ *  A — an HONEST exit lives on EVERY step (including 3, 4, the escalated
+ *      branch and the terminal state). Exiting performs stopEmergency() ONLY:
+ *      no success, no failure, no check closure, no fabricated outcome — the
+ *      originating urge check stays exactly as it was (pending/escalated).
+ *      The user must never report «الخطر هدي» falsely just to escape.
+ *  B — step 3 carries a swap action («مش ممكن دلوقتي — عوّضني بواحد تاني"):
+ *      the impossible recommendation is excluded (engine excludeIds) and a
+ *      GENUINELY different one is selected. Swapping writes NO log — swapping
+ *      is not performing. When candidates run out, a TERMINAL state replaces
+ *      the recommendation loop: one default physical action + reassess + the
+ *      quiet exit. The old escalation fallback (re-recommend call-person
+ *      forever) is gone: selectEscalation's null IS the exhaustion signal.
+ *  D — intervention success is written ONLY against THIS session's log
+ *      (sessionLogId — created when the user claims «تم» on step 3). The old
+ *      «slice(-1)» heuristic could mark an unrelated yesterday log successful
+ *      when reassessment is reached without any step-3 «تم» (now possible via
+ *      the terminal path).
  */
 export function EmergencyMode() {
   const ctx = useAppStore((s) => s.emergencyCtx);
@@ -41,6 +60,13 @@ export function EmergencyMode() {
   const [usedIds, setUsedIds] = useState<string[]>([]);
   const [escalated, setEscalated] = useState(false);
   const [done, setDone] = useState(false);
+  // B — terminal state: no genuinely different candidate remains in this
+  // session (swap-exhausted or escalation-exhausted).
+  const [terminal, setTerminal] = useState(false);
+  // D — the log written by THIS session's step-3 «تم» (null until the user
+  // claims an intervention was performed). Outcome success is written only
+  // against this id — never against "whatever log happens to be last".
+  const [sessionLogId, setSessionLogId] = useState<string | null>(null);
 
   const context = {
     alone: true,
@@ -51,16 +77,20 @@ export function EmergencyMode() {
   };
 
   // Pure + cheap engine call — computed directly (no memo needed).
+  // B — escalation exhaustion is a real answer now: selectEscalation may
+  // return null, and null renders the TERMINAL state (the old code silently
+  // fell back to re-recommending «call-person» — an endless loop of the same
+  // instruction the user already said did not work).
   const intervention: Intervention | null =
     step !== 3
       ? null
       : escalated
-        ? (selectEscalation(usedIds, {
+        ? selectEscalation(usedIds, {
             riskLevel,
             triggerIds: triggers,
             context,
             data,
-          }) ?? INTERVENTION_BY_ID["call-person"] ?? null)
+          })
         : selectIntervention({
             riskLevel,
             triggerIds: triggers,
@@ -71,20 +101,55 @@ export function EmergencyMode() {
 
   const logUse = (iv: Intervention | null) => {
     if (!iv) return;
+    const id = uid("ivl-");
     logIntervention({
-      id: uid("ivl-"),
+      id,
       ts: nowIso(),
       interventionId: iv.id,
       riskLevel,
       source: "emergency",
     });
+    // D — remember THIS session's log: the only id success/failure may be
+    // written against (see nextFromIntervention).
+    setSessionLogId(id);
     setUsedIds((u) => [...u, iv.id]);
+  };
+
+  // A — the honest exit, rendered on EVERY step. It does exactly one thing
+  // (stopEmergency) and is visually quiet so it never competes with the
+  // primary action.
+  const exitControl = (
+    <button
+      type="button"
+      onClick={stopEmergency}
+      className="mx-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+    >
+      <LogOut className="size-3.5" />
+      خروج من وضع الطوارئ
+    </button>
+  );
+
+  // B — swap: this recommendation is impossible right now. Exclude it WITHOUT
+  // logging (swapping is not performing — no history pollution) and let the
+  // recomputation above pick a genuinely different candidate. If nothing
+  // remains, fall to the terminal state instead of ever repeating one.
+  const swapIntervention = () => {
+    if (step !== 3 || !intervention) return;
+    const nextUsed = [...usedIds, intervention.id];
+    setUsedIds(nextUsed);
+    const exhausted = escalated
+      ? selectEscalation(nextUsed, { riskLevel, triggerIds: triggers, context, data }) ==
+          null
+      : !INTERVENTIONS.some((iv) => !nextUsed.includes(iv.id));
+    if (exhausted) setTerminal(true);
   };
 
   const nextFromIntervention = (success: boolean) => {
     const st = useAppStore.getState();
-    const last = st.interventionLogs.slice(-1)[0];
-    if (last) st.setInterventionSuccess(last.id, success);
+    // D — success/failure is written ONLY against this session's performed
+    // log (null when reassessment was reached via swap/terminal without any
+    // «تم» — write nothing rather than guess at "the last log").
+    if (sessionLogId) st.setInterventionSuccess(sessionLogId, success);
     // Close the originating urge check so neither the Urge screen nor Home
     // keeps showing a stale high-risk state after the emergency resolved.
     // "escalated" checks (the user moved here from Urge Check → "ما زال
@@ -103,10 +168,62 @@ export function EmergencyMode() {
     if (success) {
       setDone(true);
     } else {
+      // B — escalate only while a genuinely different candidate remains;
+      // otherwise the terminal state (physical default + human connection).
+      // `escalated` stays true in the terminal variant so the support-call
+      // section keeps showing — when interventions run out, a person is the
+      // honest next step.
       setEscalated(true);
-      setStep(3);
+      if (
+        selectEscalation(usedIds, { riskLevel, triggerIds: triggers, context, data }) !=
+          null
+      ) {
+        setStep(3);
+      } else {
+        setTerminal(true);
+      }
     }
   };
+
+  // ————— Terminal state (B): no genuinely different candidate left —————
+  // One default physical action (no decision, no reading), one reassess
+  // CTA, the human-connection option when the escalation context is on, and
+  // the quiet honest exit. Reached from swap-exhaustion or escalation-
+  // exhaustion; it never re-recommends anything and never loops by itself.
+  if (terminal || (step === 3 && escalated && intervention == null)) {
+    return (
+      <EmergencyFrame maximum={maximum} key="emergency-terminal">
+        <Header
+          maximum={maximum}
+          riskLevel={riskLevel}
+          title="مفيش تدخل تاني أعرضه دلوقتي"
+        />
+        <div className="w-full space-y-6">
+          <div className="rounded-2xl border border-destructive/30 bg-background/60 p-5">
+            <p className="text-xl font-bold leading-relaxed sm:text-2xl">
+              اقفل الجهاز وابعد عن المكان — أي مكان فيه ناس أو حركة.
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              دي الخطوة الافتراضية — تعملها من غير ما تقرا أو تقرر حاجة تانية.
+            </p>
+          </div>
+          <Button
+            size="lg"
+            className="h-16 w-full text-lg font-bold"
+            data-autofocus
+            onClick={() => {
+              setTerminal(false);
+              setStep(4);
+            }}
+          >
+            تم — عيد التقييم
+          </Button>
+          {escalated && <SupportCall />}
+          {exitControl}
+        </div>
+      </EmergencyFrame>
+    );
+  }
 
   // ————— Completion screen —————
   if (done) {
@@ -211,30 +328,17 @@ export function EmergencyMode() {
             تم — الخطوة اللي بعدها
           </Button>
 
-          {escalated && (
-            <div className="w-full space-y-3 rounded-2xl border border-border bg-background/60 p-4">
-              <div className="flex items-center gap-2 font-semibold">
-                <Users className="size-4" />
-                لو تقدر دلوقتي:
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {data.supportPerson?.phone && (
-                  <a
-                    href={`tel:${data.supportPerson.phone}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                  >
-                    <Phone className="size-4" />
-                    اتصل بـ{data.supportPerson.label}
-                  </a>
-                )}
-                {!data.supportPerson?.phone && (
-                  <span className="rounded-xl bg-muted px-3 py-2 text-sm">
-                    «{SUPPORT_MESSAGE_TEMPLATES[0]}» — ابعتها لأي شخص تثق فيه
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+          {/* B — swap: the recommendation is impossible right now? Get a
+              DIFFERENT one. Excluded, never re-recommended this session, and
+              NO log is written — swapping is not performing. */}
+          <Button variant="outline" className="w-full" onClick={swapIntervention}>
+            مش ممكن دلوقتي — عوّضني بواحد تاني
+          </Button>
+
+          {escalated && <SupportCall />}
+
+          {/* A — honest exit: closes the overlay only. */}
+          {exitControl}
         </div>
       </EmergencyFrame>
     );
@@ -242,6 +346,11 @@ export function EmergencyMode() {
 
   // ————— Step 4: reassess —————
   if (step === 4) {
+    // B — the «لأ» label must not promise a stronger intervention when
+    // none remains: the honest answer at exhaustion is the terminal state.
+    const escalationLeft =
+      selectEscalation(usedIds, { riskLevel, triggerIds: triggers, context, data }) !=
+      null;
     return (
       <EmergencyFrame maximum={maximum} key="emergency-step4">
         <Header maximum={maximum} step={4} riskLevel={riskLevel} title="الخطر هدي؟" />
@@ -262,13 +371,17 @@ export function EmergencyMode() {
             onClick={() => nextFromIntervention(false)}
           >
             <Siren className="size-6" />
-            لأ — لسه عالي: جرّب تدخل أقوى
+            {escalationLeft ? "لأ — لسه عالي: جرّب تدخل أقوى" : "لأ — لسه عالي"}
           </Button>
         </div>
 
         {/* P1 — reassessment has enough cognitive space for the user's own
             words. NOT on the level-5 crisis variant (maximum). */}
         {!maximum && <PersonalWhy />}
+
+        {/* A — honest exit: closes the overlay only (the check stays
+            exactly as it was — no fabricated outcome). */}
+        <div className="mt-4">{exitControl}</div>
       </EmergencyFrame>
     );
   }
@@ -308,16 +421,43 @@ export function EmergencyMode() {
         >
           تم
         </Button>
-        <button
-          type="button"
-          onClick={stopEmergency}
-          className="mx-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="size-3.5" />
-          خروج من وضع الطوارئ
-        </button>
+        {/* A — the same honest exit, already present here before this batch. */}
+        {exitControl}
       </div>
     </EmergencyFrame>
+  );
+}
+
+/**
+ * B — human connection, shown in the escalated step-3 variant and in the
+ * terminal state reached from escalation exhaustion: when interventions run
+ * out, a person is the honest next step. Never on the calm steps.
+ */
+function SupportCall() {
+  const supportPerson = useAppStore((s) => s.supportPerson);
+  return (
+    <div className="w-full space-y-3 rounded-2xl border border-border bg-background/60 p-4">
+      <div className="flex items-center gap-2 font-semibold">
+        <Users className="size-4" />
+        لو تقدر دلوقتي:
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {supportPerson?.phone && (
+          <a
+            href={`tel:${supportPerson.phone}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            <Phone className="size-4" />
+            اتصل بـ{supportPerson.label}
+          </a>
+        )}
+        {!supportPerson?.phone && (
+          <span className="rounded-xl bg-muted px-3 py-2 text-sm">
+            «{SUPPORT_MESSAGE_TEMPLATES[0]}» — ابعتها لأي شخص تثق فيه
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 

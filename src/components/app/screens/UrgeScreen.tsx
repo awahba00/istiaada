@@ -38,6 +38,11 @@ export function UrgeScreen() {
   const [savedCheck, setSavedCheck] = useState<UrgeCheckType | null>(null);
   const [intervention, setIntervention] = useState<Intervention | null>(null);
   const [showAnti, setShowAnti] = useState(false);
+  // D — the intervention log written by THIS flow's completion path (the
+  // card's own «تم»). Null while the card is merely shown or skipped:
+  // navigation is not an outcome, and «هدّت» after a skip must never mint a
+  // success for an intervention the user never performed.
+  const [performedLogId, setPerformedLogId] = useState<string | null>(null);
 
   // C1 — derive "the saved check was resolved elsewhere" instead of resetting
   // state in an effect: Emergency Mode closes the originating check when it
@@ -103,6 +108,10 @@ export function UrgeScreen() {
   };
 
   const pickIntervention = () => {
+    // D — NOTHING is logged on entry. The recommendation is logged only when
+    // the user completes it via the card's own «تم» (completeIntervention).
+    // A shown-but-skipped card leaves no trace in history: no log, no recency
+    // penalty, no success — nothing to pollute the selection history.
     const iv = selectIntervention({
       riskLevel: assessment.level,
       triggerIds: triggers,
@@ -110,23 +119,43 @@ export function UrgeScreen() {
       data,
     });
     setIntervention(iv);
-    logIntervention({
-      id: uid("ivl-"),
-      ts: nowIso(),
-      interventionId: iv.id,
-      riskLevel: assessment.level,
-      source: "urge-check",
-    });
     setPhase("intervention");
+  };
+
+  // D — the ONLY path that writes an intervention log in this flow: the
+  // card's own completion button (the user's «تم» = performed).
+  const completeIntervention = () => {
+    if (intervention) {
+      const id = uid("ivl-");
+      logIntervention({
+        id,
+        ts: nowIso(),
+        interventionId: intervention.id,
+        riskLevel: assessment.level,
+        source: "urge-check",
+      });
+      setPerformedLogId(id);
+    }
+    setPhase("outcome");
+  };
+
+  // D — skip: straight to reassessment with NO log and NO success. The
+  // outcome screen still honestly asks «الخطر هبط ولا لسه؟» — answering it
+  // is the user's report about the SITUATION, not about an intervention.
+  const skipIntervention = () => {
+    setPerformedLogId(null);
+    setPhase("outcome");
   };
 
   const finishOutcome = (outcome: "handled" | "escalated" | "acted") => {
     if (savedCheck) setUrgeOutcome(savedCheck.id, outcome);
     if (outcome === "acted") {
+      setPerformedLogId(null);
       navigate("relapse");
       return;
     }
     if (outcome === "escalated") {
+      setPerformedLogId(null);
       startEmergency({
         riskLevel: assessment.level,
         triggers,
@@ -134,11 +163,14 @@ export function UrgeScreen() {
       });
       return;
     }
-    // handled — mark intervention success (read fresh state, not stale render data)
-    const lastLog = useAppStore.getState().interventionLogs.slice(-1)[0];
-    if (lastLog) {
-      useAppStore.getState().setInterventionSuccess(lastLog.id, true);
+    // handled — success is written ONLY for the log created by THIS flow's
+    // completion path (never «whatever log happens to be last» — the old
+    // slice(-1) heuristic could mark an unrelated old log successful after
+    // a skipped card).
+    if (performedLogId) {
+      useAppStore.getState().setInterventionSuccess(performedLogId, true);
     }
+    setPerformedLogId(null);
     setPhase("input");
   };
 
@@ -242,20 +274,52 @@ export function UrgeScreen() {
   if (phase === "result") {
     const rl = RISK_LEVELS[assessment.level - 1];
     const mode = assessment.recommendedMode;
+    // E — from degree 3 up, the recommended STEP is the headline and the
+    // numeric degree demotes to context (the guidance directs; the number
+    // only alarms). Below 3 the calm presentation stays untouched.
+    const urgent = assessment.level >= 3;
+    const riskColor = riskColorVar(assessment.level);
     return (
       <div className="space-y-5">
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-card p-6 text-center">
-          <div className="text-sm text-muted-foreground">درجة حالتك الآن</div>
-          <div
-            className="tnum text-6xl font-black leading-none"
-            style={{ color: riskColorVar(assessment.level) }}
-          >
-            {assessment.level}
-            <span className="text-2xl text-muted-foreground"> من ٥</span>
-          </div>
-          <div className="text-lg font-bold" style={{ color: riskColorVar(assessment.level) }}>
-            {rl.label}
-          </div>
+        <div
+          className={`flex flex-col items-center gap-3 rounded-3xl border bg-card p-6 text-center ${
+            assessment.level >= 4
+              ? "border-destructive/50"
+              : assessment.level === 3
+                ? "border-warning/50"
+                : "border-border"
+          }`}
+        >
+          {urgent ? (
+            <>
+              <div className="text-sm leading-relaxed text-muted-foreground">
+                درجة حالتك الآن:{" "}
+                <b className="tnum" style={{ color: riskColor }}>
+                  {assessment.level} من ٥
+                </b>{" "}
+                · {rl.label}
+              </div>
+              <div aria-hidden="true" className="h-px w-16 bg-border" />
+              <div className="text-xs font-bold text-muted-foreground">أنسب خطوة الآن</div>
+              <div className="text-3xl font-black leading-tight" style={{ color: riskColor }}>
+                {assessment.modeLabel}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm text-muted-foreground">درجة حالتك الآن</div>
+              <div
+                className="tnum text-6xl font-black leading-none"
+                style={{ color: riskColor }}
+              >
+                {assessment.level}
+                <span className="text-2xl text-muted-foreground"> من ٥</span>
+              </div>
+              <div className="text-lg font-bold" style={{ color: riskColor }}>
+                {rl.label}
+              </div>
+            </>
+          )}
           <p className="text-sm leading-relaxed text-muted-foreground">{rl.description}</p>
           {rl.examples && (
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -269,9 +333,11 @@ export function UrgeScreen() {
               ))}
             </div>
           )}
-          <div className="rounded-full bg-muted px-4 py-1.5 text-xs font-semibold">
-            أنسب خطوة الآن: {assessment.modeLabel}
-          </div>
+          {!urgent && (
+            <div className="rounded-full bg-muted px-4 py-1.5 text-xs font-semibold">
+              أنسب خطوة الآن: {assessment.modeLabel}
+            </div>
+          )}
         </div>
 
         {/* I7: the number is a self-reported indicator — say so right where
@@ -356,9 +422,6 @@ export function UrgeScreen() {
               </CardContent>
             </Card>
 
-            <Button size="lg" className="w-full" onClick={pickIntervention}>
-              ابدأ التدخل المقترح دلوقتي
-            </Button>
             <Button
               variant="outline"
               className="w-full"
@@ -373,6 +436,16 @@ export function UrgeScreen() {
               <Siren className="size-4" />
               ابدأ وضع الطوارئ بدلًا منه
             </Button>
+
+            {/* E — sticky primary CTA (the input screen's I1 philosophy): at
+                the urgent moment the recommended action must be reachable
+                WITHOUT scrolling — it never depends on how much content sits
+                above it. */}
+            <div className="sticky bottom-20 z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+              <Button size="lg" className="h-14 w-full text-base font-bold shadow-xl" onClick={pickIntervention}>
+                ابدأ التدخل المقترح دلوقتي
+              </Button>
+            </div>
           </div>
         )}
 
@@ -392,26 +465,30 @@ export function UrgeScreen() {
                 </span>
               </InfoNote>
             )}
-            <Button
-              size="lg"
-              variant="destructive"
-              className="h-16 w-full text-lg font-bold"
-              onClick={() =>
-                startEmergency({
-                  riskLevel: assessment.level,
-                  triggers,
-                  workSafe: deviceNeededNow,
-                })
-              }
-            >
-              <Siren className="size-6" />
-              تدخّل دلوقتي — وضع الطوارئ
-            </Button>
             {mode === "emergency" && (
               <p className="text-center text-sm leading-relaxed text-muted-foreground">
                 هنعرض لك خطوات قليلة وواضحة بس — كل ما الخطر يعلى، الخيارات تقل.
               </p>
             )}
+            {/* E — sticky primary: the degree-4+ recommended action stays
+                reachable without scrolling, mirroring I1. */}
+            <div className="sticky bottom-20 z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+              <Button
+                size="lg"
+                variant="destructive"
+                className="h-16 w-full text-lg font-bold"
+                onClick={() =>
+                  startEmergency({
+                    riskLevel: assessment.level,
+                    triggers,
+                    workSafe: deviceNeededNow,
+                  })
+                }
+              >
+                <Siren className="size-6" />
+                تدخّل دلوقتي — وضع الطوارئ
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -420,20 +497,41 @@ export function UrgeScreen() {
 
   // ————— INTERVENTION PHASE —————
   if (phase === "intervention" && intervention) {
+    // C — the heading must tell the truth about THIS moment's degree: a
+    // level-4 user just read «قربت من التصرف؟ ما تحللش دلوقتي» on the result
+    // screen — this screen must not downgrade the story to the level-3
+    // «بدأت تقوى» narrative. Higher urgency → action-first wording, compact
+    // timer, less reading. Level-3 keeps its calmer original phrasing.
+    const immediate = assessment.recommendedMode === "immediate";
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="الرغبة بدأت بتقوى — اقطعها دلوقتي وهي لسه صغيرة: خطوة قطع واحدة تكفي غالبًا."
-          subtitle="خطوة واحدة بس — مش محتاج تحل كل حاجة دلوقتي."
+          title={
+            immediate
+              ? "قربت من التصرف — نفّذ التدخل ده دلوقتي، ما تحللش."
+              : "الرغبة بدأت بتقوى — اقطعها دلوقتي وهي لسه صغيرة: خطوة قطع واحدة تكفي غالبًا."
+          }
+          subtitle={
+            immediate
+              ? "خطوة واحدة بس — اعملها حالًا."
+              : "خطوة واحدة بس — مش محتاج تحل كل حاجة دلوقتي."
+          }
           icon={<Gauge className="size-5" />}
         />
-        <InterventionCard iv={intervention} onComplete={() => setPhase("outcome")} />
+        <InterventionCard
+          iv={intervention}
+          compactTimer={immediate}
+          onComplete={completeIntervention}
+        />
+        {/* D — skip: reassess WITHOUT any log or success (see
+            skipIntervention). The label describes the actual destination
+            (the outcome reassessment), not a «re-check» that never happens. */}
         <Button
           variant="ghost"
           className="w-full text-muted-foreground"
-          onClick={() => setPhase("outcome")}
+          onClick={skipIntervention}
         >
-          تخطّى لإعادة الفحص
+          تخطّى — راجع حالتك
         </Button>
       </div>
     );
