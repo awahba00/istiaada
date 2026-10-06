@@ -89,8 +89,10 @@ const classificationLabel = (e: RelapseEvent): string | null =>
 
 const behaviorsLabel = (e: RelapseEvent): string | null => {
   if (!e.behaviors || e.behaviors.length === 0) return null;
-  if (e.behaviors.length === 2) return "حسّيت أنني عدت إلى النمط القديم";
-  return BEHAVIOR_OPTIONS.find((b) => b.id === e.behaviors![0])?.label ?? null;
+  const labels = e.behaviors
+    .map((b) => BEHAVIOR_OPTIONS.find((o) => o.id === b)?.label)
+    .filter((l): l is string => l != null);
+  return labels.length > 0 ? labels.join(" + ") : null;
 };
 
 /** Q5 (continuation) chip for history — rendered ONLY for events where the
@@ -487,7 +489,7 @@ export function RelapseScreen() {
     return (
       <div className="space-y-5">
         <ScreenHeader
-          title="المراجعة الهادئة مستنياك هنا بعد كده، لما تكون مستعد."
+          title="المراجعة الهادئة"
           subtitle="الهدف مش «ليه أنا ضعيف» — الهدف إننا نلاقي أبكر نقطة كان ممكن توقف عندها."
           icon={<BookOpen className="size-5" />}
         />
@@ -544,7 +546,7 @@ export function RelapseScreen() {
               <Textarea
                 value={rFirstSign}
                 onChange={(e) => setRFirstSign(e.target.value)}
-                placeholder="٢ · إيه اللي خلّى المقاومة أضعف يومها؟"
+                placeholder="مثال: حسّيت بالملل وفتحت التليفون من غير سبب…"
                 className="min-h-16 text-sm"
               />
             </CardContent>
@@ -674,7 +676,7 @@ export function RelapseScreen() {
                 onClick={() => openReview(e.id)}
               >
                 <span>
-                  مراجعة {classificationLabel(e) ?? "حصلت زَلّة؟ ما تكملش — إيقاف فوري، وبعدها نفهم اللي حصل براحة."} {arabicDateTime(e.ts)}
+                  مراجعة {classificationLabel(e) ?? "سجل"} {arabicDateTime(e.ts)}
                 </span>
                 <ChevronLeft className="size-4" />
               </Button>
@@ -697,10 +699,12 @@ export function RelapseScreen() {
           direction={metrics.stopTrend === "better" ? "up" : undefined}
         />
         <StatTile
-          label="أوقفت عند أولها"
-          value={metrics.secondFallPrevented != 0 ? `${metrics.secondFallPrevented}` : "—"}
-          hint={`من ${data.relapseEvents.length} في السجل`}
-          direction="up"
+          label="حصلت مرة واحدة"
+          value={
+            metrics.repetitionKnownEvents > 0 ? `${metrics.secondFallPrevented}` : "—"
+          }
+          hint={`من ${metrics.repetitionKnownEvents} سجل اتسأل فيه سؤال التكرار`}
+          direction={metrics.secondFallPrevented > 0 ? "up" : undefined}
         />
       </div>
 

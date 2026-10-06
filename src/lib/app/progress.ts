@@ -15,6 +15,12 @@ export interface ProgressMetrics {
   earlyInterventions: number;
   sessionsStoppedEarly: number;
   secondFallPrevented: number;
+  /** Events where the repetition question (Q5 «حصل مرة ولا أكتر؟») was
+   *  actually asked — i.e. behaviors include masturbation. This is the only
+   *  population whose `continued` value has a known meaning, and the honest
+   *  denominator for secondFallPrevented. Porn-only events (placeholder
+   *  false) and legacy events (pre-Q5 wording) are NOT reinterpreted. */
+  repetitionKnownEvents: number;
   triggerAwareness: number;
   avgStopMinutes: number | null;
   stopTrend: "better" | "same" | "worse" | null;
@@ -123,7 +129,15 @@ export function computeProgress(data: AppData): ProgressMetrics {
     sessionsStoppedEarly: relapses.filter(
       (r) => r.timeToStop === "immediately" || r.timeToStop === "minutes"
     ).length,
-    secondFallPrevented: relapses.filter((r) => !r.continued).length,
+    // Repetition metric — counts only events whose Q5 answer exists.
+    // Porn-only events store a schema-required false placeholder and legacy
+    // events predate the question: neither is counted, neither is guessed.
+    secondFallPrevented: relapses.filter(
+      (r) => r.behaviors?.includes("masturbation") && !r.continued
+    ).length,
+    repetitionKnownEvents: relapses.filter((r) =>
+      r.behaviors?.includes("masturbation")
+    ).length,
     triggerAwareness: triggerIds.size,
     avgStopMinutes: avgStop != null ? Math.round(avgStop) : null,
     stopTrend,
@@ -259,7 +273,7 @@ export function forecastFromCheckIn(
   if (load >= 11)
     return {
       level: "elevated",
-      message: "اليوم متوسط الحمل — التزم بالحد الأدنى من خطتك وحافظ على روتين الليل.",
+      message: "اليوم عالي الحمل — نفّذ الحد الأدنى بس من خطتك، ونام بدري، وخلي بالك في أوقات الخطر.",
     };
   if (load >= 7)
     return {

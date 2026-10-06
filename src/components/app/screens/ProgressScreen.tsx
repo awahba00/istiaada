@@ -95,7 +95,7 @@ export function ProgressScreen() {
               direction={m.urgesHandled7d > 0 ? "up" : undefined}
             />
             <StatTile
-              label="جلسات وقفتها بدري"
+              label="تدخلات بدري"
               value={String(m.earlyInterventions)}
               hint="عند درجة ٣ أو أقل — خلال ٣٠ يوم"
               direction={m.earlyInterventions > 0 ? "up" : undefined}
@@ -107,9 +107,9 @@ export function ProgressScreen() {
               direction={m.sessionsStoppedEarly > 0 ? "up" : undefined}
             />
             <StatTile
-              label="أوقفت عند أولها"
-              value={String(m.secondFallPrevented)}
-              hint="سجلات ما امتدتش لجلسة طويلة"
+              label="حصلت مرة واحدة"
+              value={m.repetitionKnownEvents > 0 ? String(m.secondFallPrevented) : "—"}
+              hint="من السجلات اللي اتسأل فيها سؤال التكرار"
               direction={m.secondFallPrevented > 0 ? "up" : undefined}
             />
           </div>
@@ -128,7 +128,7 @@ export function ProgressScreen() {
               value={
                 m.avgStopMinutes != null
                   ? m.avgStopMinutes < 5
-                    ? "أسرع من الشهر اللي فات ✓"
+                    ? "فوري تقريبًا"
                     : `~${m.avgStopMinutes} د`
                   : "—"
               }
@@ -207,7 +207,7 @@ export function ProgressScreen() {
           {insights.topPattern && (
             <InsightRow
               icon={<Compass className="size-4" />}
-              label="سجّل كام فحص رغبة وتدخل، وهتظهر هنا قراءاتك: أفضل تدخل، أخطر وقت، وسرعة استجابتك."
+              label="أكتر نمط بيتكرر"
               value={insights.topPattern.parts.join(" + ")}
             />
           )}
