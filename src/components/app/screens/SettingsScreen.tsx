@@ -113,7 +113,6 @@ export function SettingsScreen() {
             <li>• مفيش حساب، ولا تسجيل دخول، ولا خادم بيستقبل أي حاجة.</li>
             <li>• امسح بياناتك من الشاشة دي وقت ما تحب — والمسح نهائي.</li>
             <li>• مش بنطلب اسمك الحقيقي ولا أي تفاصيل صريحة.</li>
-            <li>• امسح بياناتك من الشاشة دي وقت ما تحب — والمسح نهائي.</li>
           </ul>
         </CardContent>
       </Card>
@@ -153,7 +152,7 @@ export function SettingsScreen() {
         <CardContent className="space-y-3 pt-5">
           <div className="font-bold">المحتوى والدعم</div>
           <ToggleRow
-            title="صلاة، ذكر، توبة — بتظهر بس عند تفعيلها"
+            title="الجرعة اليومية"
             description="جرعة تعلم يومية مخصصة على الرئيسية"
             checked={data.settings.dailyDoseEnabled}
             onCheckedChange={(v) => setSettings({ dailyDoseEnabled: v })}
@@ -272,7 +271,7 @@ export function SettingsScreen() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>اختار ملف نسخة احتياطية سليم (.json). بنتأكد من سلامته قبل الاستبدال — ولو التحقق فشل، بياناتك الحالية هتفضل زي إيه من غير أي تغيير.</AlertDialogCancel>
+                <AlertDialogCancel>رجوع</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={resetApp}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
