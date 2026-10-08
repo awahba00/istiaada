@@ -105,7 +105,7 @@ function QuickGuide({ onEmergency }: { onEmergency: () => void }) {
             </button>
           ))}
         </div>
-        <p className="pt-1 text-center text-[11px] leading-relaxed text-muted-foreground">
+        <p className="pt-1 text-center text-2xs leading-relaxed text-muted-foreground">
           كل أداة ليها وقتها — استخدم اللي محتاجه دلوقتي.
         </p>
       </CardContent>
@@ -282,7 +282,7 @@ export function HomeScreen() {
               الجرعة اليومية — اليوم {metrics.daysSinceStart}
             </div>
             {doseDoneToday && (
-              <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
+              <span className="rounded-full bg-success/15 px-2.5 py-1 text-2xs font-semibold text-success">
                 أنجزت جرعة اليوم ✓
               </span>
             )}
@@ -291,11 +291,11 @@ export function HomeScreen() {
             <div className="font-semibold">{dose.title}</div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-xl bg-muted p-3">
-                <div className="mb-1 text-[11px] font-bold text-primary">اعرف</div>
+                <div className="mb-1 text-2xs font-bold text-primary">اعرف</div>
                 <p className="line-clamp-3 leading-relaxed text-muted-foreground">{dose.know}</p>
               </div>
               <div className="rounded-xl bg-muted p-3">
-                <div className="mb-1 text-[11px] font-bold text-primary">افعل</div>
+                <div className="mb-1 text-2xs font-bold text-primary">افعل</div>
                 <p className="line-clamp-3 leading-relaxed text-muted-foreground">{dose.act}</p>
               </div>
             </div>
@@ -386,7 +386,7 @@ export function HomeScreen() {
         </CardContent>
       </Card>
 
-      <p className="pb-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+      <p className="pb-2 text-center text-2xs leading-relaxed text-muted-foreground">
         مؤشرات سلوكية للاستخدام الشخصي — مش تشخيص طبي ولا نسبة تعافٍ.
         <br />
         بياناتك محفوظة على جهازك بس.

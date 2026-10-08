@@ -178,7 +178,7 @@ export function AppShell() {
           </div>
           <div>
             <div className="font-bold leading-tight">استعادة</div>
-            <div className="text-[11px] text-muted-foreground">نظام شخصي للتحكم</div>
+            <div className="text-2xs text-muted-foreground">نظام شخصي للتحكم</div>
           </div>
         </div>
         <div className="px-4 pb-4">
@@ -203,7 +203,7 @@ export function AppShell() {
             </button>
           ))}
         </nav>
-        <div className="border-t border-border px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">
+        <div className="border-t border-border px-5 py-3 text-2xs leading-relaxed text-muted-foreground">
           بياناتك على جهازك بس — من غير حسابات ولا خوادم.
         </div>
       </aside>
@@ -236,7 +236,7 @@ export function AppShell() {
             onClick={() => go("home")}
             aria-current={screen === "home" ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors",
+              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-2xs font-medium transition-colors",
               screen === "home" ? "text-primary" : "text-muted-foreground"
             )}
           >
@@ -248,7 +248,7 @@ export function AppShell() {
             onClick={() => go("dose")}
             aria-current={screen === "dose" ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors",
+              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-2xs font-medium transition-colors",
               screen === "dose" ? "text-primary" : "text-muted-foreground"
             )}
           >
@@ -265,7 +265,7 @@ export function AppShell() {
               className="emergency-pulse -mt-6 flex size-16 flex-col items-center justify-center gap-0.5 rounded-full bg-destructive text-destructive-foreground shadow-xl transition-transform active:scale-90"
             >
               <Siren className="size-6" />
-              <span className="text-[9px] font-bold">تدخل دلوقتي</span>
+              <span className="text-3xs font-bold">تدخل دلوقتي</span>
             </button>
           </div>
 
@@ -274,7 +274,7 @@ export function AppShell() {
             onClick={() => go("plan")}
             aria-current={screen === "plan" ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors",
+              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-2xs font-medium transition-colors",
               screen === "plan" ? "text-primary" : "text-muted-foreground"
             )}
           >
@@ -287,7 +287,7 @@ export function AppShell() {
             aria-label="المزيد من الأقسام"
             aria-current={onMoreScreen ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors",
+              "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-2xs font-medium transition-colors",
               moreOpen || onMoreScreen ? "text-primary" : "text-muted-foreground",
               onMoreScreen && "font-bold"
             )}
@@ -333,7 +333,7 @@ export function AppShell() {
               >
                 {item.icon && <item.icon className="size-5 text-primary" />}
                 <span className="text-sm font-semibold leading-tight">{item.label}</span>
-                <span className="text-[11px] leading-snug text-muted-foreground">{item.desc}</span>
+                <span className="text-2xs leading-snug text-muted-foreground">{item.desc}</span>
               </button>
             ))}
             <button
@@ -346,7 +346,7 @@ export function AppShell() {
             >
               <Siren className="size-5 text-destructive" />
               <span className="text-sm font-bold text-destructive">تدخّل دلوقتي</span>
-              <span className="text-[11px] leading-snug text-muted-foreground">
+              <span className="text-2xs leading-snug text-muted-foreground">
                 لحظة خطر؟ وضع الطوارئ — خطوات مباشرة من غير تشتيت
               </span>
             </button>

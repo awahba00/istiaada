@@ -142,7 +142,7 @@ export function ValuesScreen() {
                       <ol className="mt-2.5 space-y-1.5 text-sm leading-relaxed">
                         {p.steps.map((s, i) => (
                           <li key={i} className="flex gap-2">
-                            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/15 text-[11px] font-bold text-primary">
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/15 text-2xs font-bold text-primary">
                               {i + 1}
                             </span>
                             {s}
@@ -228,7 +228,7 @@ function ValuesDraft() {
       >
         + قيمة تانية
       </Button>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-2xs leading-relaxed text-muted-foreground">
         المسودة دي بتتخزن على جهازك تلقائيًا — هتفضل هنا مهما تنقلت أو فتحت التطبيق تاني، ولو فيها حاجة مهمة ليك انقلها لسببك الشخصي فوق عشان تظهر لك وقت الشدة.
       </p>
     </div>

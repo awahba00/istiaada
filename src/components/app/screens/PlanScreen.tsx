@@ -168,7 +168,7 @@ export function PlanScreen() {
             }`}
           >
             <div className="text-sm font-bold">{m.label}</div>
-            <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{m.desc}</div>
+            <div className="mt-0.5 text-3xs leading-tight text-muted-foreground">{m.desc}</div>
           </button>
         ))}
       </div>
@@ -345,7 +345,7 @@ function EveningCheckInDialog({
           </button>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+      <div className="mt-1 flex justify-between text-3xs text-muted-foreground">
         <span>{low}</span>
         <span>{high}</span>
       </div>
@@ -404,7 +404,7 @@ function EveningCheckInDialog({
                     </button>
                   ))}
                 </div>
-                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                <div className="mt-1 flex justify-between text-3xs text-muted-foreground">
                   <span>بالكاد حسيت بيها</span>
                   <span>لأقصى درجة وصلت لها</span>
                 </div>
@@ -495,7 +495,7 @@ function EveningCheckInDialog({
             </Button>
           )}
         </div>
-        <p className="flex items-center gap-1 text-center text-[11px] leading-relaxed text-muted-foreground">
+        <p className="flex items-center gap-1 text-center text-2xs leading-relaxed text-muted-foreground">
           <Zap className="size-3 shrink-0" />
           صراحتك هنا هي اللي بتخلّي خريطتك وتوقعاتك أدق — بياناتك بتفضل على جهازك.
         </p>

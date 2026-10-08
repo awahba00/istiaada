@@ -128,7 +128,7 @@ export function TriggerMapScreen() {
                   </span>
                   <div className="h-6 flex-1 overflow-hidden rounded-lg bg-muted">
                     <div
-                      className={`flex h-full items-center justify-end rounded-lg pe-2 text-[11px] font-bold transition-all ${
+                      className={`flex h-full items-center justify-end rounded-lg pe-2 text-2xs font-bold transition-all ${
                         isMax ? "bg-destructive text-destructive-foreground" : "bg-primary/40"
                       }`}
                       style={{ width: `${Math.max(pct, count > 0 ? 12 : 0)}%` }}

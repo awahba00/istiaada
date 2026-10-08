@@ -8,6 +8,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-app);
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* Scalable micro typography — 11px / 10px at the default 16px root.
+     rem-based so micro labels follow root/browser text scaling.
+     Intentionally no line-height or letter-spacing companions: font-size
+     only, matching the fixed-px utilities these tokens replace. */
+  --text-2xs: 0.6875rem;
+  --text-3xs: 0.625rem;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

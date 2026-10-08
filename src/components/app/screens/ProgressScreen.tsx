@@ -55,11 +55,11 @@ export function ProgressScreen() {
               />
             ))}
           </div>
-          <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
+          <div className="mt-1.5 flex justify-between text-3xs text-muted-foreground">
             <span>تثبيت</span>
             <span>المدى الطويل</span>
           </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-2xs leading-relaxed text-muted-foreground">
             {JOURNEY_DISCLAIMER}
           </p>
         </CardContent>

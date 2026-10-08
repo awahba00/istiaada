@@ -53,7 +53,7 @@ export function DoseScreen() {
             <BookOpen className="size-4" />
             {dose.title}
           </div>
-          <span className="rounded-full bg-background/60 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+          <span className="rounded-full bg-background/60 px-2.5 py-1 text-2xs font-semibold text-muted-foreground">
             {CATEGORY_LABELS[dose.category]}
           </span>
         </div>
@@ -154,7 +154,7 @@ export function DoseScreen() {
                     </div>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-2xs ${
                       d.status === "done"
                         ? "bg-success/15 text-success"
                         : "bg-muted text-muted-foreground"

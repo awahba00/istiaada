@@ -782,7 +782,7 @@ export function RelapseScreen() {
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {classificationLabel(e) && (
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
                             e.classification === "relapse"
                               ? "bg-warning/15 text-warning"
                               : "bg-muted text-foreground"
@@ -792,16 +792,16 @@ export function RelapseScreen() {
                         </span>
                       )}
                       {behaviorsLabel(e) && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-2xs">
                           {behaviorsLabel(e)}
                         </span>
                       )}
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-2xs">
                         {TIME_TO_STOP_OPTIONS.find((t) => t.id === e.timeToStop)?.label}
                       </span>
                       {continuedLabel(e) && (
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] ${
+                          className={`rounded-full px-2 py-0.5 text-2xs ${
                             e.continued ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"
                           }`}
                         >
@@ -809,7 +809,7 @@ export function RelapseScreen() {
                         </span>
                       )}
                       {e.reviewed && (
-                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-2xs text-primary">
                           مُراجَع
                         </span>
                       )}

@@ -303,7 +303,7 @@ export function SettingsScreen() {
           <InfoNote>
             التطبيق ده أداة مساعدة ذاتية سلوكية — مش تشخيص، ولا علاج طبي، ولا بديل عن مختص. طلب المساعدة قوة، مش اعتراف بالفشل.
           </InfoNote>
-          <p className="text-center text-[11px] text-muted-foreground">
+          <p className="text-center text-2xs text-muted-foreground">
             استعادة · نسخة {APP_VERSION} · يعمل محليًا بالكامل
           </p>
         </CardContent>
