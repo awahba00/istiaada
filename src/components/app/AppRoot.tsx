@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useSyncExternalStore } from "react";
 import { useAppStore } from "@/lib/app/store";
+import { applyTextSize, getStoredTextSize } from "@/lib/app/text-size";
 import { AppShell } from "./AppShell";
 import { Onboarding } from "./Onboarding";
 import { EmergencyMode } from "./screens";
@@ -28,6 +29,13 @@ export function AppRoot() {
   useEffect(() => {
     if (storeHydrated) setTheme(theme);
   }, [theme, storeHydrated, setTheme]);
+
+  // Belt-and-braces for the pre-hydration boot script in layout.tsx: the
+  // device-local text-size preference is (re)applied before the first
+  // post-hydration paint of app content. No-op when already applied.
+  useLayoutEffect(() => {
+    applyTextSize(getStoredTextSize());
+  }, []);
 
   if (!storeHydrated) return <SplashScreen />;
   if (!onboardingCompleted) return <Onboarding />;

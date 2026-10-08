@@ -55,7 +55,7 @@ export function ValuesScreen() {
               return (
                 <span
                   key={r}
-                  className="rounded-full bg-primary/15 px-3.5 py-1.5 text-sm font-semibold text-primary"
+                  className="rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary"
                 >
                   {label}
                 </span>
@@ -142,7 +142,7 @@ export function ValuesScreen() {
                       <ol className="mt-2.5 space-y-1.5 text-sm leading-relaxed">
                         {p.steps.map((s, i) => (
                           <li key={i} className="flex gap-2">
-                            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/15 text-2xs font-bold text-primary">
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-2xs font-bold text-primary">
                               {i + 1}
                             </span>
                             {s}

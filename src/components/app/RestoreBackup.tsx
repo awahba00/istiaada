@@ -106,7 +106,7 @@ export function RestoreBackup({
       <Button
         type="button"
         variant="outline"
-        className="h-12 w-full gap-2 text-base"
+        className="min-h-12 w-full gap-2 text-base whitespace-normal"
         onClick={() => fileRef.current?.click()}
       >
         <Upload className="size-5" />
@@ -183,7 +183,7 @@ export function RestoreBackup({
         <div
           className={`rounded-xl p-3.5 text-sm leading-relaxed ${
             result.ok
-              ? "bg-success/15 text-success"
+              ? "bg-success/10 text-success"
               : "bg-destructive/15 text-destructive"
           }`}
           role="status"
@@ -213,7 +213,7 @@ export function RestoreBackup({
       <Button
         type="button"
         size="lg"
-        className="h-12 w-full text-base font-bold"
+        className="min-h-12 w-full text-base font-bold whitespace-normal"
         disabled={!preview.valid || result?.ok === true}
         onClick={onRestoreClick}
       >

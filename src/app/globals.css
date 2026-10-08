@@ -63,7 +63,11 @@
   --card-foreground: oklch(0.24 0.02 210);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.24 0.02 210);
-  --primary: oklch(0.56 0.09 180);
+  /* Readability tokens — L lowered just enough to reach 4.5:1 on the
+     measured pairs (nav-active, tinted chips, buttons) in real rendering
+     (color-mix in oklab keeps the tint's own channels, composited in sRGB).
+     Hue/chroma untouched. */
+  --primary: oklch(0.5 0.09 180);
   --primary-foreground: oklch(0.985 0.005 190);
   --secondary: oklch(0.94 0.012 190);
   --secondary-foreground: oklch(0.3 0.03 200);
@@ -76,10 +80,12 @@
   --border: oklch(0.88 0.015 190);
   --input: oklch(0.88 0.015 190);
   --ring: oklch(0.6 0.09 180);
-  --success: oklch(0.55 0.13 155);
+  --success: oklch(0.48 0.13 155);
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.68 0.15 65);
-  --warning-foreground: oklch(0.25 0.05 65);
+  --warning: oklch(0.52 0.15 65);
+  /* warning became dark enough to need a light foreground (solid buttons),
+     mirroring the light theme's primary/success pattern. */
+  --warning-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.62 0.1 180);
   --chart-2: oklch(0.65 0.13 155);
   --chart-3: oklch(0.75 0.14 70);
@@ -112,7 +118,10 @@
   --accent: oklch(0.3 0.035 185);
   --accent-foreground: oklch(0.92 0.04 180);
   --destructive: oklch(0.66 0.19 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  /* Dark foreground on the dark theme's bright red — 5.16:1 (was 3.21 with
+     white). Matches how .dark already pairs success/warning with dark
+     foregrounds; hue untouched. */
+  --destructive-foreground: oklch(0.22 0.05 25);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.68 0.09 180);

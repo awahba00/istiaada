@@ -100,13 +100,13 @@ export function PreventionScreen() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 space-y-1.5">
                     <div className="text-sm font-semibold leading-relaxed">
-                      <span className="rounded bg-warning/15 px-1.5 py-0.5 text-2xs font-bold text-warning">
+                      <span className="rounded bg-warning/10 px-1.5 py-0.5 text-2xs font-bold text-warning">
                         إذا
                       </span>{" "}
                       {r.ifText}
                     </div>
                     <div className="text-sm font-semibold leading-relaxed">
-                      <span className="rounded bg-success/15 px-1.5 py-0.5 text-2xs font-bold text-success">
+                      <span className="rounded bg-success/10 px-1.5 py-0.5 text-2xs font-bold text-success">
                         إذن
                       </span>{" "}
                       {r.thenText}
@@ -257,7 +257,7 @@ export function PreventionScreen() {
           <div className="space-y-4">
             <div>
               <div className="mb-1.5 text-sm font-semibold">
-                <span className="rounded bg-warning/15 px-1.5 py-0.5 text-2xs font-bold text-warning">
+                <span className="rounded bg-warning/10 px-1.5 py-0.5 text-2xs font-bold text-warning">
                   إذا
                 </span>{" "}
                 إيه اللي حصل؟
@@ -271,7 +271,7 @@ export function PreventionScreen() {
             </div>
             <div>
               <div className="mb-1.5 text-sm font-semibold">
-                <span className="rounded bg-success/15 px-1.5 py-0.5 text-2xs font-bold text-success">
+                <span className="rounded bg-success/10 px-1.5 py-0.5 text-2xs font-bold text-success">
                   إذن
                 </span>{" "}
                 أعمل إيه فورًا؟

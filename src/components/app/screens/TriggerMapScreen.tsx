@@ -84,7 +84,7 @@ export function TriggerMapScreen() {
               {insights.topPattern.parts.map((p) => (
                 <span
                   key={p}
-                  className="rounded-full bg-primary/15 px-3 py-1.5 text-sm font-semibold text-primary"
+                  className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary"
                 >
                   {p}
                 </span>
@@ -129,7 +129,7 @@ export function TriggerMapScreen() {
                   <div className="h-6 flex-1 overflow-hidden rounded-lg bg-muted">
                     <div
                       className={`flex h-full items-center justify-end rounded-lg pe-2 text-2xs font-bold transition-all ${
-                        isMax ? "bg-destructive text-destructive-foreground" : "bg-primary/40"
+                        isMax ? "bg-destructive text-destructive-foreground" : "bg-primary/30"
                       }`}
                       style={{ width: `${Math.max(pct, count > 0 ? 12 : 0)}%` }}
                     >

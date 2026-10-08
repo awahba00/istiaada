@@ -304,7 +304,7 @@ export function Onboarding() {
         {step === 7 && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex size-11 items-center justify-center rounded-2xl bg-success/15 text-success">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-success/10 text-success">
                 <ShieldCheck className="size-5" />
               </div>
               <h2 className="text-xl font-bold">جهّزنا خطتك الأولى</h2>

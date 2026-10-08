@@ -282,7 +282,7 @@ export function HomeScreen() {
               الجرعة اليومية — اليوم {metrics.daysSinceStart}
             </div>
             {doseDoneToday && (
-              <span className="rounded-full bg-success/15 px-2.5 py-1 text-2xs font-semibold text-success">
+              <span className="rounded-full bg-card px-2.5 py-1 text-2xs font-semibold text-success">
                 أنجزت جرعة اليوم ✓
               </span>
             )}

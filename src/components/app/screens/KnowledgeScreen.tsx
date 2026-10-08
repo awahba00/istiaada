@@ -111,7 +111,7 @@ export function KnowledgeScreen() {
               <div className="flex items-start justify-between gap-2">
                 <div className="font-semibold leading-snug">{k.title}</div>
                 {k.spiritual && (
-                  <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-3xs font-bold text-primary">
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-bold text-primary">
                     روحي
                   </span>
                 )}

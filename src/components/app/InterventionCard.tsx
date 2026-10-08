@@ -35,7 +35,7 @@ export function InterventionCard({
         <ol className="space-y-2.5">
           {iv.instructions.map((step, i) => (
             <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-xs font-bold text-primary">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
                 {i + 1}
               </span>
               <span className="pt-0.5">{step}</span>

@@ -194,7 +194,7 @@ export function AppShell() {
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start text-sm transition-colors",
                 screen === item.id
-                  ? "bg-primary/15 font-semibold text-primary"
+                  ? "bg-primary/10 font-semibold text-primary"
                   : "text-foreground/80 hover:bg-accent hover:text-foreground"
               )}
             >
@@ -230,7 +230,11 @@ export function AppShell() {
         className="safe-b fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden"
         aria-label="التنقل السفلي"
       >
-        <div className="mx-auto grid max-w-md grid-cols-5 items-end px-2 pt-1.5 pb-1.5">
+        {/* auto center track: the 64px FAB is content-sized (not squeezed
+            by a 1fr track), so it stays a perfect circle at every root font
+            size — 64/80/96px at 100/125/150% — and the label stays on one
+            line. Emergency semantics/thresholds untouched (layout only). */}
+        <div className="mx-auto grid max-w-md grid-cols-[1fr_1fr_auto_1fr_1fr] items-end px-2 pt-1.5 pb-1.5">
           <button
             type="button"
             onClick={() => go("home")}

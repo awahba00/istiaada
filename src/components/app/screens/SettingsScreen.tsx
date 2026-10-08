@@ -31,6 +31,12 @@ import { WHEN_TO_SEEK_HELP } from "@/data/app/taxonomy";
 import { computeProgress } from "@/lib/app/progress";
 import { APP_VERSION } from "@/lib/app/backup";
 import {
+  TEXT_SIZE_LEVELS,
+  getStoredTextSize,
+  setTextSize,
+  type TextSizeId,
+} from "@/lib/app/text-size";
+import {
   Settings as SettingsIcon,
   Download,
   Upload,
@@ -40,6 +46,7 @@ import {
   Sun,
   LifeBuoy,
   Copy,
+  Check,
 } from "lucide-react";
 
 /** Does the user have meaningful local data an import would replace? */
@@ -70,6 +77,9 @@ export function SettingsScreen() {
 
   const [importOpen, setImportOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  // In-app font size (device-local accessibility preference — not part of
+  // AppSettings/backup). Applied immediately on click via setTextSize.
+  const [textSize, setTextSizeState] = useState<TextSizeId>(getStoredTextSize);
   // Controlled so the destructive confirm registers a Back-navigation
   // sentinel (Hybrid C): Back closes the dialog first, keeping the user on
   // Settings. Mirrors the controlled import dialog above.
@@ -203,6 +213,42 @@ export function SettingsScreen() {
                 {t.label}
               </button>
             ))}
+          </div>
+          {/* Text size — device-local a11y preference, never in backup */}
+          <div className="space-y-2 pt-1">
+            <div className="text-sm font-semibold">حجم الخط</div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              كبّر الخط لو القراية صعبة — التغيير فوري ومحفوظ على الجهاز ده بس.
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="حجم الخط"
+              className="grid grid-cols-3 gap-2"
+            >
+              {TEXT_SIZE_LEVELS.map((l) => {
+                const active = textSize === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => {
+                      setTextSize(l.id);
+                      setTextSizeState(l.id);
+                    }}
+                    className={`flex items-center justify-center gap-1.5 rounded-2xl border p-3 font-semibold transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border hover:border-primary/30"
+                    }`}
+                  >
+                    {active && <Check className="size-4" aria-hidden="true" />}
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -326,7 +326,7 @@ export function UrgeScreen() {
               {rl.examples.map((e) => (
                 <span
                   key={e}
-                  className="rounded-full bg-warning/15 px-3 py-1 text-xs text-warning"
+                  className="rounded-full bg-warning/10 px-3 py-1 text-xs text-warning"
                 >
                   {e}
                 </span>

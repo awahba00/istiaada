@@ -784,7 +784,7 @@ export function RelapseScreen() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
                             e.classification === "relapse"
-                              ? "bg-warning/15 text-warning"
+                              ? "bg-warning/10 text-warning"
                               : "bg-muted text-foreground"
                           }`}
                         >
@@ -802,14 +802,14 @@ export function RelapseScreen() {
                       {continuedLabel(e) && (
                         <span
                           className={`rounded-full px-2 py-0.5 text-2xs ${
-                            e.continued ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"
+                            e.continued ? "bg-destructive/15 text-destructive" : "bg-success/10 text-success"
                           }`}
                         >
                           {continuedLabel(e)}
                         </span>
                       )}
                       {e.reviewed && (
-                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-2xs text-primary">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-2xs text-primary">
                           مُراجَع
                         </span>
                       )}

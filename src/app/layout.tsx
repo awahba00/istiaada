@@ -48,6 +48,16 @@ export default function RootLayout({
       <body
         className={`${appArabic.variable} antialiased bg-background text-foreground min-h-screen`}
       >
+        {/* Pre-hydration text-size boot: reads the device-local
+            "istiaada-text-size" preference and scales the root font-size
+            (percentage → keeps the browser/OS default as base) BEFORE any
+            app content — including the SSR splash — paints. Mirror of
+            TEXT_SIZE_LEVELS in lib/app/text-size.ts. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m={normal:"100%",large:"125%",xlarge:"150%"};var s=m[localStorage.getItem("istiaada-text-size")];if(s)document.documentElement.style.fontSize=s}catch(e){}})();`,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

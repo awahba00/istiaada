@@ -88,7 +88,7 @@ export function DoseScreen() {
           )}
 
           {done ? (
-            <div className="flex items-center justify-center gap-2 rounded-xl bg-success/15 py-3 font-semibold text-success">
+            <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3 font-semibold text-success">
               <Check className="size-5" />
               أنجزت جرعة اليوم
             </div>
@@ -156,7 +156,7 @@ export function DoseScreen() {
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-2xs ${
                       d.status === "done"
-                        ? "bg-success/15 text-success"
+                        ? "bg-success/10 text-success"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
