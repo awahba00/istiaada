@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { ScreenHeader, Chip, EmptyState } from "../shared";
 import { DOSE_EXAMPLES } from "@/data/app/dose-examples";
-import { KNOWLEDGE, KNOWLEDGE_CATEGORIES } from "@/data/app/knowledge";
+import { KNOWLEDGE, KNOWLEDGE_BY_ID, KNOWLEDGE_CATEGORIES } from "@/data/app/knowledge";
 import { normalizeArabic } from "@/lib/app/helpers";
 import type { KnowledgeItem } from "@/lib/app/types";
 import { LibraryBig, Search, Lightbulb, Anchor, Footprints, BookOpen, BookOpenText } from "lucide-react";
@@ -18,6 +18,19 @@ export function KnowledgeScreen() {
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<KnowledgeItem | null>(null);
+
+  // F4 — previous-dose direct open: a navigation may carry a focus item
+  // (session-only store field set when a previous-dose row is tapped). Open
+  // its card — the exact dialog a manual card tap opens — consuming the
+  // intent exactly once. An unknown id changes nothing here; category,
+  // search, filtering and counts are never touched.
+  useEffect(() => {
+    const focus = useAppStore.getState().knowledgeFocus;
+    if (!focus) return;
+    useAppStore.getState().clearKnowledgeFocus();
+    const item = KNOWLEDGE_BY_ID[focus];
+    if (item) setSelected(item);
+  }, []);
 
   const items = useMemo(() => {
     let pool = KNOWLEDGE.filter((k) => data.settings.spiritualContent || !k.spiritual);

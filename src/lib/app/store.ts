@@ -46,9 +46,18 @@ interface AppStore extends AppData {
   screen: ScreenId;
   emergencyActive: boolean;
   emergencyCtx: EmergencyContext | null;
+  /**
+   * Session-only navigation intent (F4): the knowledge item a previous-dose
+   * row wants opened on arrival. Sits next to `screen` and is — like `screen` —
+   * never persisted (partialize); the Knowledge screen consumes it exactly
+   * once on mount.
+   */
+  knowledgeFocus: string | null;
 
   setHydrated: (v: boolean) => void;
   navigate: (s: ScreenId) => void;
+  openKnowledgeItem: (itemId: string) => void;
+  clearKnowledgeFocus: () => void;
   startEmergency: (ctx: EmergencyContext) => void;
   stopEmergency: () => void;
 
@@ -121,9 +130,17 @@ export const useAppStore = create<AppStore>()(
       screen: "home",
       emergencyActive: false,
       emergencyCtx: null,
+      knowledgeFocus: null,
 
       setHydrated: (v) => set({ hydrated: v }),
       navigate: (s) => set({ screen: s }),
+      // F4 — previous-dose direct open: carry the tapped item to the Knowledge
+      // screen. Screen-wise this is exactly navigate("knowledge") (one history
+      // entry, same as any navigate); the focus is transient session state the
+      // Knowledge screen consumes on mount.
+      openKnowledgeItem: (itemId) =>
+        set({ knowledgeFocus: itemId, screen: "knowledge" }),
+      clearKnowledgeFocus: () => set({ knowledgeFocus: null }),
       startEmergency: (ctx) => set({ emergencyActive: true, emergencyCtx: ctx }),
       stopEmergency: () => set({ emergencyActive: false, emergencyCtx: null }),
 

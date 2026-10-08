@@ -17,6 +17,7 @@ export function DoseScreen() {
   const data = useAppStore();
   const logDose = useAppStore((s) => s.logDose);
   const navigate = useAppStore((s) => s.navigate);
+  const openKnowledgeItem = useAppStore((s) => s.openKnowledgeItem);
   const today = dayKey();
 
   const dose = useMemo(() => selectDailyDose({ data }), [data]);
@@ -141,7 +142,9 @@ export function DoseScreen() {
                 <button
                   key={d.date}
                   type="button"
-                  onClick={() => navigate("knowledge")}
+                  // F4 — the row promises THIS dose's card: open it directly
+                  // (the Knowledge screen consumes the focus on mount).
+                  onClick={() => openKnowledgeItem(d.itemId)}
                   className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background p-3 text-start text-sm transition-colors hover:border-primary/30"
                 >
                   <div className="min-w-0">
