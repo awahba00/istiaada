@@ -19,7 +19,7 @@ import {
   LibraryBig,
   Settings,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { LogoMark } from "./LogoMark";
@@ -71,6 +71,14 @@ const SCREEN_COMPONENTS: Record<ScreenId, React.ComponentType> = {
   settings: SettingsScreen,
 };
 
+// Bottom-nav direct tabs; every other screen lives behind «المزيد» (More).
+const DIRECT_TAB_SCREENS = new Set<ScreenId>(["home", "dose", "plan"]);
+
+// A screen that belongs to the More/secondary section (never a direct tab;
+// "emergency" is an overlay that is never routed to).
+const isMoreScreen = (id: ScreenId) =>
+  id !== "emergency" && !DIRECT_TAB_SCREENS.has(id);
+
 function EmergencyButton({
   onClick,
   compact = false,
@@ -102,6 +110,23 @@ export function AppShell() {
   // Every always-on SOS entry point goes through the launcher — Work-Safe
   // is derived from the user's profile (deviceNeeds) consistently (I4).
   const openEmergency = () => launchEmergency(5);
+
+  // F1 — true while the current page is one of the More/secondary screens;
+  // the bottom-nav «المزيد» control represents that page.
+  const onMoreScreen = isMoreScreen(screen);
+
+  // F2 — on screen navigation, reset the page scroll to the top. Keyed to
+  // the existing `screen` state only; navigate()/store semantics untouched.
+  // "instant" overrides the app-wide CSS `scroll-behavior: smooth` so the
+  // reset is a jump, not a glide. The initial mount is not a navigation.
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [screen]);
 
   const Screen = SCREEN_COMPONENTS[screen];
 
@@ -230,12 +255,14 @@ export function AppShell() {
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-label="المزيد من الأقسام"
+            aria-current={onMoreScreen ? "page" : undefined}
             className={cn(
               "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors",
-              moreOpen ? "text-primary" : "text-muted-foreground"
+              moreOpen || onMoreScreen ? "text-primary" : "text-muted-foreground",
+              onMoreScreen && "font-bold"
             )}
           >
-            <Menu className="size-5" />
+            <Menu className="size-5" strokeWidth={onMoreScreen ? 2.75 : 2} />
             المزيد
           </button>
         </div>
@@ -247,6 +274,7 @@ export function AppShell() {
           side="bottom"
           className="rounded-t-3xl px-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] pt-3"
           aria-describedby={undefined}
+          showCloseButton={false}
         >
           <SheetTitle className="mb-4 text-center text-base font-bold">
             كل الأقسام
@@ -255,7 +283,7 @@ export function AppShell() {
             type="button"
             onClick={() => setMoreOpen(false)}
             aria-label="إغلاق"
-            className="absolute end-4 top-3 flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
+            className="absolute end-2.5 top-1.5 flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
           >
             <X className="size-4" />
           </button>
@@ -265,6 +293,7 @@ export function AppShell() {
                 key={item.id}
                 type="button"
                 onClick={() => go(item.id)}
+                aria-current={screen === item.id ? "page" : undefined}
                 className={cn(
                   "flex flex-col gap-1.5 rounded-2xl border p-4 text-start transition-colors",
                   screen === item.id
