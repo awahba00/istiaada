@@ -5,11 +5,32 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { overlayClosedViaUI, overlayOpened } from "@/lib/app/nav-history"
 
 function AlertDialog({
+  open,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+  // Back navigation (Hybrid C): same sentinel contract as Dialog — Back
+  // closes a controlled alert dialog before it can leave the app. The
+  // uncontrolled variant (trigger-only, e.g. the destructive confirm in
+  // Settings) keeps the previous behavior.
+  const closeRef = React.useRef(onOpenChange)
+  closeRef.current = onOpenChange
+  React.useEffect(() => {
+    if (open)
+      overlayOpened("alert-dialog", () => closeRef.current?.(false))
+    else overlayClosedViaUI("alert-dialog")
+  }, [open])
+  return (
+    <AlertDialogPrimitive.Root
+      data-slot="alert-dialog"
+      open={open}
+      onOpenChange={onOpenChange}
+      {...props}
+    />
+  )
 }
 
 function AlertDialogTrigger({

@@ -70,6 +70,10 @@ export function SettingsScreen() {
 
   const [importOpen, setImportOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Controlled so the destructive confirm registers a Back-navigation
+  // sentinel (Hybrid C): Back closes the dialog first, keeping the user on
+  // Settings. Mirrors the controlled import dialog above.
+  const [eraseConfirmOpen, setEraseConfirmOpen] = useState(false);
   const metrics = computeProgress(data);
 
   const startDate = dayKey(data.journey.startDate);
@@ -256,7 +260,7 @@ export function SettingsScreen() {
       <Card className="border-destructive/30">
         <CardContent className="space-y-3 pt-5">
           <div className="font-bold text-destructive">منطقة الحذر</div>
-          <AlertDialog>
+          <AlertDialog open={eraseConfirmOpen} onOpenChange={setEraseConfirmOpen}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="gap-1.5">
                 <Trash2 className="size-4" />

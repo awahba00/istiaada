@@ -2,6 +2,11 @@
 
 import { useAppStore, type ScreenId } from "@/lib/app/store";
 import { useEmergencyLauncher } from "@/lib/app/emergency-launcher";
+import {
+  initNavHistory,
+  overlayClosedViaUI,
+  overlayOpened,
+} from "@/lib/app/nav-history";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Siren,
@@ -104,6 +109,7 @@ function EmergencyButton({
 export function AppShell() {
   const screen = useAppStore((s) => s.screen);
   const navigate = useAppStore((s) => s.navigate);
+  const emergencyActive = useAppStore((s) => s.emergencyActive);
   const launchEmergency = useEmergencyLauncher();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -127,6 +133,30 @@ export function AppShell() {
     }
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [screen]);
+
+  // ————— Hybrid C: mirror in-app navigation into browser history —————
+  // The store stays the source of truth; this only adds history entries so
+  // the physical Back key walks the app's own stack (Home = root: Back
+  // beyond it exits normally). See lib/app/nav-history.ts.
+  useEffect(() => initNavHistory(), []);
+
+  // Each open overlay holds one sentinel history entry so Back closes it
+  // first. Declared BEFORE the emergency wiring on purpose: on a More-sheet
+  // → SOS hand-off both flags flip in one commit, and this order lets the
+  // emergency sentinel take over the freed More slot (no dead entry).
+  useEffect(() => {
+    if (moreOpen) overlayOpened("more", () => setMoreOpen(false));
+    else overlayClosedViaUI("more");
+  }, [moreOpen]);
+
+  // Emergency keeps ALL of its semantics (ACT-FIRST A/B/D untouched):
+  // Back performs exactly the overlay's own honest exit — stopEmergency()
+  // only: no fabricated outcome, the originating check stays as it was.
+  useEffect(() => {
+    if (emergencyActive)
+      overlayOpened("emergency", () => useAppStore.getState().stopEmergency());
+    else overlayClosedViaUI("emergency");
+  }, [emergencyActive]);
 
   const Screen = SCREEN_COMPONENTS[screen];
 

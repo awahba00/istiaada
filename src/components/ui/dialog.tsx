@@ -5,11 +5,31 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { overlayClosedViaUI, overlayOpened } from "@/lib/app/nav-history"
 
 function Dialog({
+  open,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  // Back navigation (Hybrid C): while a controlled dialog is open it holds
+  // one browser-history sentinel, so the physical Back key closes the dialog
+  // before it can leave the app. Uncontrolled dialogs (no `open` prop) keep
+  // the previous behavior — there is no external close handle for them.
+  const closeRef = React.useRef(onOpenChange)
+  closeRef.current = onOpenChange
+  React.useEffect(() => {
+    if (open) overlayOpened("dialog", () => closeRef.current?.(false))
+    else overlayClosedViaUI("dialog")
+  }, [open])
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      open={open}
+      onOpenChange={onOpenChange}
+      {...props}
+    />
+  )
 }
 
 function DialogTrigger({
