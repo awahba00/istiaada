@@ -84,7 +84,7 @@ export function TriggerMapScreen() {
               {insights.topPattern.parts.map((p) => (
                 <span
                   key={p}
-                  className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary"
+                  className="rounded-full bg-primary/5 px-3 py-1.5 text-sm font-semibold text-primary"
                 >
                   {p}
                 </span>

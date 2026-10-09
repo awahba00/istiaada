@@ -488,7 +488,7 @@ function PersonalWhy() {
             return (
               <span
                 key={r}
-                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                className="rounded-full bg-primary/5 px-3 py-1 text-xs font-semibold text-primary"
               >
                 {label}
               </span>
