@@ -369,7 +369,7 @@ export function UrgeScreen() {
                 </ul>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="h-auto min-h-9 w-full whitespace-normal"
                   onClick={() => navigate("knowledge")}
                 >
                   اقرأ موضوعًا من قاعدة المعرفة

@@ -53,6 +53,15 @@ interface AppStore extends AppData {
    * once on mount.
    */
   knowledgeFocus: string | null;
+  /**
+   * Session-only origin screen for the pending focus open (F4-return): the
+   * screen the user was on when the previous-dose row was tapped. Consumed
+   * together with `knowledgeFocus` by the Knowledge screen — never persisted.
+   * Only `openKnowledgeItem` sets it (previous-dose rows); every generic
+   * Knowledge entry (More sheet, UrgeScreen link, DoseScreen full-index
+   * button) keeps navigate("knowledge") and a null origin.
+   */
+  knowledgeFocusOrigin: ScreenId | null;
 
   setHydrated: (v: boolean) => void;
   navigate: (s: ScreenId) => void;
@@ -131,16 +140,25 @@ export const useAppStore = create<AppStore>()(
       emergencyActive: false,
       emergencyCtx: null,
       knowledgeFocus: null,
+      knowledgeFocusOrigin: null,
 
       setHydrated: (v) => set({ hydrated: v }),
       navigate: (s) => set({ screen: s }),
-      // F4 — previous-dose direct open: carry the tapped item to the Knowledge
-      // screen. Screen-wise this is exactly navigate("knowledge") (one history
-      // entry, same as any navigate); the focus is transient session state the
-      // Knowledge screen consumes on mount.
+      // F4 + F4-return — previous-dose direct open: carry the tapped item
+      // AND the screen it was tapped from to the Knowledge screen. The
+      // Knowledge screen opens the exact item's dialog from its FIRST render
+      // (no generic-index flash) and nav-history places that dialog's
+      // sentinel directly on the origin screen's entry, so dismissing it by
+      // any path (device Back, X, Escape) returns to Daily Dose in one step.
+      // Generic navigate("knowledge") is untouched.
       openKnowledgeItem: (itemId) =>
-        set({ knowledgeFocus: itemId, screen: "knowledge" }),
-      clearKnowledgeFocus: () => set({ knowledgeFocus: null }),
+        set((s) => ({
+          knowledgeFocus: itemId,
+          knowledgeFocusOrigin: s.screen,
+          screen: "knowledge",
+        })),
+      clearKnowledgeFocus: () =>
+        set({ knowledgeFocus: null, knowledgeFocusOrigin: null }),
       startEmergency: (ctx) => set({ emergencyActive: true, emergencyCtx: ctx }),
       stopEmergency: () => set({ emergencyActive: false, emergencyCtx: null }),
 

@@ -9,7 +9,7 @@ import { ScreenHeader, StatTile, InfoNote } from "../shared";
 import { currentHomeState } from "@/lib/app/risk-engine";
 import { computeProgress } from "@/lib/app/progress";
 import { selectDailyDose } from "@/lib/app/dose-engine";
-import { dayKey, greeting } from "@/lib/app/helpers";
+import { dayKey, greeting, occurrenceTime, occurrenceIso } from "@/lib/app/helpers";
 import { cn } from "@/lib/utils";
 import {
   Siren,
@@ -93,7 +93,14 @@ function QuickGuide({ onEmergency }: { onEmergency: () => void }) {
               key={r.situation}
               type="button"
               onClick={r.onClick}
-              className="flex w-full items-center gap-2.5 py-3 text-start transition-colors hover:text-foreground"
+              /* Responsive row: when the situation + action labels fit, the
+                dotted leader still spans the leftover space (identical to
+                the single-line design). At larger text sizes the row wraps
+                instead of overflowing: the leader fills the first line and
+                the action (with its chevron) moves to its own line — always
+                fully readable, never clipped, never pushing content outside
+                the viewport. */
+              className="flex w-full flex-wrap items-center gap-x-2.5 gap-y-1 py-3 text-start transition-colors hover:text-foreground"
             >
               <r.icon className={cn("size-4 shrink-0", r.iconClass)} />
               <span className="shrink-0 text-sm font-medium text-muted-foreground">
@@ -121,14 +128,24 @@ export function HomeScreen() {
   const lastCheck = data.urgeChecks.length
     ? data.urgeChecks[data.urgeChecks.length - 1]
     : null;
-  const lastRelapse = data.relapseEvents.length
-    ? data.relapseEvents[data.relapseEvents.length - 1]
-    : null;
+  // The "last relapse" for the current-state banner is the most recent
+  // OCCURRENCE (a backdated record of an older event must not hijack the
+  // banner, and neither may the array's insertion order).
+  const lastRelapse = useMemo(() => {
+    const events = data.relapseEvents;
+    if (events.length === 0) return null;
+    return events.reduce((best, cur) => {
+      const tc = occurrenceTime(cur);
+      const tb = occurrenceTime(best);
+      if (tc > tb || (tc === tb && cur.ts > best.ts)) return cur;
+      return best;
+    });
+  }, [data.relapseEvents]);
 
   const homeState = currentHomeState(
     lastCheck?.riskLevel ?? null,
     lastCheck?.ts ?? null,
-    lastRelapse?.ts ?? null,
+    lastRelapse ? occurrenceIso(lastRelapse) : null,
     lastRelapse ? lastRelapse.reviewed : true,
     lastCheck?.outcome ?? null
   );
@@ -287,9 +304,13 @@ export function HomeScreen() {
               </span>
             )}
           </div>
-          <CardContent className="space-y-3 pt-4">
+          {/* @container: the dose know/act tiles measure the space they
+              actually get — at 125%/150% text the two columns become too
+              narrow to read, so they stack (grid below collapses to one
+              column) while 100% keeps the side-by-side design. */}
+          <CardContent className="@container space-y-3 pt-4">
             <div className="font-semibold">{dose.title}</div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-1 gap-2 text-sm @min-[15rem]:grid-cols-2">
               <div className="rounded-xl bg-muted p-3">
                 <div className="mb-1 text-2xs font-bold text-primary">اعرف</div>
                 <p className="line-clamp-3 leading-relaxed text-muted-foreground">{dose.know}</p>
@@ -343,8 +364,8 @@ export function HomeScreen() {
 
       {/* ————— Progress snapshot ————— */}
       <Card>
-        <CardContent className="pt-5">
-          <div className="mb-3 flex items-center justify-between">
+        <CardContent className="@container pt-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-y-1">
             <div className="flex items-center gap-2 font-bold">
               <TrendingUp className="size-4 text-primary" />
               لمحة عن تقدمك
@@ -358,7 +379,7 @@ export function HomeScreen() {
               <ChevronLeft className="size-4" />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 @min-[9.7rem]:grid-cols-2">
             <StatTile
               label="رغبات اتعاملت معاها"
               value={String(metrics.urgesHandled)}

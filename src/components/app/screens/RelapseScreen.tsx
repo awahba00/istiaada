@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,16 @@ import {
   StepDots,
   Chip,
 } from "../shared";
-import { nowIso, uid, arabicDateTime } from "@/lib/app/helpers";
+import {
+  nowIso,
+  uid,
+  dayKey,
+  arabicDate,
+  dayKeyDate,
+  isPastOrToday,
+  occurrenceTime,
+  eventDateLabel,
+} from "@/lib/app/helpers";
 import { computeProgress } from "@/lib/app/progress";
 import { TRIGGERS, VULNERABILITY_FACTORS, EARLY_WARNING_SIGNS } from "@/data/app/taxonomy";
 import type {
@@ -43,6 +53,7 @@ import {
   ChevronLeft,
   Plus,
   Trash2,
+  CalendarDays,
 } from "lucide-react";
 
 type View = "main" | "stop" | "quick" | "reframe" | "review";
@@ -145,6 +156,9 @@ export function RelapseScreen() {
   const [qTriggers, setQTriggers] = useState<string[]>([]);
   const [qContinued, setQContinued] = useState<boolean | null>(null);
   const [qTime, setQTime] = useState<TimeToStop | null>(null);
+  // Event occurrence day («تاريخ الواقعة») — defaults to TODAY, so recording
+  // something that just happened needs no extra tap. Day-granular only.
+  const [qDate, setQDate] = useState<string>(dayKey());
 
   // review
   const [reviewStep, setReviewStep] = useState(0);
@@ -158,8 +172,16 @@ export function RelapseScreen() {
   const [suggestedAdded, setSuggestedAdded] = useState(false);
 
   const metrics = useMemo(() => computeProgress(data), [data]);
+  // Occurrence order (the day it HAPPENED, not the day it was entered), with
+  // deterministic tiebreaks — legacy/same-day events keep the exact previous
+  // ts-desc order (occurrenceTime === ts epoch for them).
   const events = useMemo(
-    () => [...data.relapseEvents].sort((a, b) => (a.ts < b.ts ? 1 : -1)),
+    () =>
+      [...data.relapseEvents].sort(
+        (a, b) =>
+          occurrenceTime(b) - occurrenceTime(a) ||
+          (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : a.id < b.id ? 1 : -1)
+      ),
     [data.relapseEvents]
   );
   const pendingReview = events.filter((e) => !e.reviewed);
@@ -177,8 +199,14 @@ export function RelapseScreen() {
 
   const saveQuick = () => {
     if (qBehaviors.length === 0 || qClassification == null) return;
+    // Future occurrence days can never be saved (input max + this guard).
+    if (!isPastOrToday(qDate)) return;
     const id = addRelapseQuick({
       ts: nowIso(),
+      // The day the event OCCURRED (the user's selected local calendar day;
+      // today unless they explicitly chose a past one). `ts`/`quickTs` stay
+      // the honest entry timestamps.
+      eventDate: qDate,
       timeToStop: qTime ?? "minutes",
       // Schema requires a boolean here. When Q5 was never shown (porn-only
       // log) there is no answer to inherit — store false.
@@ -196,6 +224,7 @@ export function RelapseScreen() {
     setQTriggers([]);
     setQContinued(null);
     setQTime(null);
+    setQDate(dayKey());
     setView("reframe");
   };
 
@@ -301,7 +330,7 @@ export function RelapseScreen() {
           {stopStep < STOP_STEPS.length && (
             <Button
               size="lg"
-              className="h-14 w-full text-base font-bold"
+              className="h-auto min-h-14 w-full text-base font-bold whitespace-normal"
               onClick={() => {
                 if (stopStep + 1 === STOP_STEPS.length) finishStopSteps();
                 else setStopStep(stopStep + 1);
@@ -331,7 +360,8 @@ export function RelapseScreen() {
       qBehaviors.length > 0 &&
       qClassification != null &&
       qTime != null &&
-      (!asksContinued || qContinued != null);
+      (!asksContinued || qContinued != null) &&
+      isPastOrToday(qDate);
     return (
       <div className="space-y-5">
         <ScreenHeader
@@ -431,6 +461,51 @@ export function RelapseScreen() {
             </CardContent>
           </Card>
         )}
+        {/* Occurrence date — optional and modest: the default (today) keeps
+            the fast path exactly as fast as before, and a past local day is
+            recorded as the day the event HAPPENED. Future days are rejected
+            (native max + save guard + inline hint). Reversible any time
+            before saving. No time-of-day is asked or invented. */}
+        <Card>
+          <CardContent className="space-y-2.5 pt-5">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <CalendarDays className="size-4 text-primary" />
+              تاريخ الواقعة
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                type="date"
+                value={qDate}
+                max={dayKey()}
+                onChange={(e) => setQDate(e.target.value || dayKey())}
+                className="w-auto bg-card text-sm"
+                aria-label="تاريخ الواقعة"
+              />
+              {qDate !== dayKey() && isPastOrToday(qDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setQDate(dayKey())}
+                >
+                  النهارده
+                </Button>
+              )}
+            </div>
+            {!isPastOrToday(qDate) ? (
+              <p className="text-xs font-medium leading-relaxed text-destructive">
+                مش ممكن تسجل واقعة بتاريخ مستقبلي — اختار تاريخ النهارده أو قبله.
+              </p>
+            ) : qDate !== dayKey() ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                هتتسجل إنها حصلت يوم {arabicDate(dayKeyDate(qDate))} — مش النهارده.
+              </p>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                افتراضيًا النهارده — غيّره بس لو الواقعة حصلت قبل كده.
+              </p>
+            )}
+          </CardContent>
+        </Card>
         <Button size="lg" className="w-full" onClick={saveQuick} disabled={!canSaveQuick}>
           احفظ وكمل
         </Button>
@@ -697,14 +772,19 @@ export function RelapseScreen() {
 
   // ————— MAIN VIEW —————
   return (
-    <div className="space-y-5">
+    <div className="@container space-y-5">
       <ScreenHeader
         title="حصلت زَلّة؟ ما تكملش — نوقف فورًا، وبعدين نفهم اللي حصل بهدوء."
         icon={<LifeBuoy className="size-5" />}
       />
 
-      <Button size="lg" variant="destructive" className="h-16 w-full text-lg font-bold" onClick={startStop}>
-        <Siren className="size-6" />
+      <Button
+        size="lg"
+        variant="destructive"
+        className="h-16 w-full text-lg font-bold whitespace-normal"
+        onClick={startStop}
+      >
+        <Siren className="size-6 shrink-0" />
         حصلت دلوقتي — وقّفها هنا
       </Button>
 
@@ -723,11 +803,11 @@ export function RelapseScreen() {
                 key={e.id}
                 variant="outline"
                 size="sm"
-                className="w-full justify-between"
+                className="h-auto min-h-8 w-full justify-between whitespace-normal text-start"
                 onClick={() => openReview(e.id)}
               >
                 <span>
-                  مراجعة {classificationLabel(e) ?? "سجل"} {arabicDateTime(e.ts)}
+                  مراجعة {classificationLabel(e) ?? "سجل"} {eventDateLabel(e)}
                 </span>
                 <ChevronLeft className="size-4" />
               </Button>
@@ -736,7 +816,7 @@ export function RelapseScreen() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 @min-[9.7rem]:grid-cols-2">
         <StatTile
           label="متوسط مدة الجلسة"
           value={
@@ -778,7 +858,7 @@ export function RelapseScreen() {
                   className="flex items-center justify-between gap-2 rounded-xl border border-border bg-background p-3 text-sm"
                 >
                   <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">{arabicDateTime(e.ts)}</div>
+                    <div className="text-xs text-muted-foreground">{eventDateLabel(e)}</div>
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {classificationLabel(e) && (
                         <span
@@ -842,9 +922,13 @@ export function RelapseScreen() {
         بيغذي الدائرة نفسها. الرجوع بهدوء أسرع من العقاب.
       </InfoNote>
 
-      <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => navigate("prevention")}>
+      <Button
+        variant="ghost"
+        className="h-auto min-h-9 w-full text-muted-foreground whitespace-normal"
+        onClick={() => navigate("prevention")}
+      >
         تحديث خطة الوقاية بعد كل زَلّة أو انتكاسة
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-4 shrink-0" />
       </Button>
 
       {/* A5 — destructive-action confirmation (same pattern as Settings /
@@ -861,7 +945,7 @@ export function RelapseScreen() {
             <AlertDialogTitle>حذف السجل نهائيًا؟</AlertDialogTitle>
             <AlertDialogDescription className="leading-relaxed">
               {deleteTarget
-                ? `${classificationLabel(deleteTarget) ?? "السجل"} بتاريخ ${arabicDateTime(deleteTarget.ts)} هيتم حذفه نهائيًا وما ينفعش يترجع.`
+                ? `${classificationLabel(deleteTarget) ?? "السجل"} بتاريخ ${eventDateLabel(deleteTarget)} هيتم حذفه نهائيًا وما ينفعش يترجع.`
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>

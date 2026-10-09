@@ -106,7 +106,7 @@ export function RestoreBackup({
       <Button
         type="button"
         variant="outline"
-        className="min-h-12 w-full gap-2 text-base whitespace-normal"
+        className="h-auto min-h-12 w-full gap-2 text-base whitespace-normal"
         onClick={() => fileRef.current?.click()}
       >
         <Upload className="size-5" />
@@ -213,7 +213,7 @@ export function RestoreBackup({
       <Button
         type="button"
         size="lg"
-        className="min-h-12 w-full text-base font-bold whitespace-normal"
+        className="h-auto min-h-12 w-full text-base font-bold whitespace-normal"
         disabled={!preview.valid || result?.ok === true}
         onClick={onRestoreClick}
       >

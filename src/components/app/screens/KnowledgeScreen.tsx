@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAppStore } from "@/lib/app/store";
+import { useAppStore, type ScreenId } from "@/lib/app/store";
+import { dismissFocusedDialogViaBack, focusOpenAbandoned } from "@/lib/app/nav-history";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,19 +18,31 @@ export function KnowledgeScreen() {
   const data = useAppStore();
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<KnowledgeItem | null>(null);
+  // F4 + F4-return — the dialog opens from the FIRST render when a
+  // navigation carries a focus item (previous-dose row), so the generic
+  // Knowledge index is never flashed before the card. `focusReturn` is
+  // non-null only while the open dialog was opened through that entry
+  // path — it is the screen dismissing the item must return to.
+  const [selected, setSelected] = useState<KnowledgeItem | null>(() => {
+    const s = useAppStore.getState();
+    return s.knowledgeFocus ? (KNOWLEDGE_BY_ID[s.knowledgeFocus] ?? null) : null;
+  });
+  const [focusReturn, setFocusReturn] = useState<ScreenId | null>(() => {
+    const s = useAppStore.getState();
+    return s.knowledgeFocus ? (s.knowledgeFocusOrigin ?? null) : null;
+  });
 
-  // F4 — previous-dose direct open: a navigation may carry a focus item
-  // (session-only store field set when a previous-dose row is tapped). Open
-  // its card — the exact dialog a manual card tap opens — consuming the
-  // intent exactly once. An unknown id changes nothing here; category,
-  // search, filtering and counts are never touched.
+  // F4 — previous-dose direct open: consume the session-only intent exactly
+  // once. The item itself was already resolved during the first render
+  // above; this only clears the store fields. An unknown id changes nothing
+  // here (category, search, filtering and counts are never touched) — it
+  // just repairs the history entry the focus navigation suppressed.
   useEffect(() => {
-    const focus = useAppStore.getState().knowledgeFocus;
+    const s = useAppStore.getState();
+    const focus = s.knowledgeFocus;
     if (!focus) return;
-    useAppStore.getState().clearKnowledgeFocus();
-    const item = KNOWLEDGE_BY_ID[focus];
-    if (item) setSelected(item);
+    s.clearKnowledgeFocus();
+    if (!KNOWLEDGE_BY_ID[focus]) focusOpenAbandoned();
   }, []);
 
   const items = useMemo(() => {
@@ -105,7 +118,10 @@ export function KnowledgeScreen() {
             <button
               key={k.id}
               type="button"
-              onClick={() => setSelected(k)}
+              onClick={() => {
+                setSelected(k);
+                setFocusReturn(null);
+              }}
               className="flex flex-col rounded-2xl border border-border bg-card p-4 text-start transition-all hover:border-primary/40 hover:shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
@@ -129,7 +145,22 @@ export function KnowledgeScreen() {
       )}
 
       {/* Card dialog */}
-      <Dialog open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
+      <Dialog
+        open={!!selected}
+        onOpenChange={(v) => {
+          if (v) return;
+          // F4-return — previous-dose entry path: dismissing the item
+          // delegates to the SAME machinery as the device Back key —
+          // history.back() pops the dialog sentinel and onPop closes the
+          // dialog AND restores Daily Dose in one commit (the dialog stays
+          // mounted, covering the index, until that commit — no flash, no
+          // history residue). Generic opens (focusReturn null) close onto
+          // the Knowledge index exactly as before.
+          if (focusReturn && dismissFocusedDialogViaBack()) return;
+          setSelected(null);
+          setFocusReturn(null);
+        }}
+      >
         <DialogContent className="rounded-3xl sm:max-w-lg" aria-describedby={undefined}>
           {selected && (
             <>

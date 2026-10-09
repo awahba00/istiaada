@@ -135,6 +135,14 @@ function checkRelapseEvent(e: unknown): string | null {
   if (!isObj(e)) return "سجل زلّة أو انتكاسة غير صالح";
   if (!isStr(e.id) || !isIsoDate(e.ts))
     return "تاريخ/معرّف غير صالح في سجل الزلات والانتكاسات";
+  // Occurrence day («تاريخ الواقعة») — optional YYYY-MM-DD, exactly like the
+  // other day-key fields (checkIn/plan/doseLog). Legacy records simply omit
+  // it; the store writes it for every Quick Log save (today by default).
+  if (
+    e.eventDate !== undefined &&
+    !(isStr(e.eventDate) && /^\d{4}-\d{2}-\d{2}$/.test(e.eventDate))
+  )
+    return "تاريخ واقعة غير صالح في سجل الزلات والانتكاسات";
   if (!oneOf(TIME_TO_STOP)(e.timeToStop))
     return "مدة توقف غير صالحة في سجل الزلات والانتكاسات";
   if (!isBool(e.continued) || !isBool(e.reviewed))

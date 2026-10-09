@@ -68,12 +68,52 @@ let applyingHistory = false;
 // Overlays currently open, bottom → top (modal exclusivity keeps this at
 // one entry; nested dialog + confirm-alert is the one real two-entry case).
 const openOverlays: RegisteredOverlay[] = [];
+// F4-return — while a focus-opened Knowledge dialog is showing, the screen
+// the user opened it from (Daily Dose for previous-dose rows). Set when the
+// focus navigation is suppressed (see initNavHistory); cleared on every
+// dismissal path. Session-only, never persisted.
+let focusedOpen: { returnTo: ScreenId } | null = null;
+// True between a programmatic dismissal's history.back() and the popstate
+// that resolves it — swallows duplicate dismissal calls (double-tap) so the
+// history is never popped twice.
+let focusedBackPending = false;
+
+function clearFocusedOpen(): void {
+  focusedOpen = null;
+  focusedBackPending = false;
+}
 
 function isMarked(st: unknown): st is NavEntryState {
   return (
     typeof st === "object" &&
     st !== null &&
     (st as { __istiaada?: unknown }).__istiaada === true
+  );
+}
+
+/**
+ * F4-return — pure predicate for the store subscription: does this screen
+ * change carry a FRESH knowledge focus (a previous-dose row opening its
+ * exact item)? Such a navigation must NOT push a screen entry — the item
+ * dialog's sentinel then sits directly on the origin screen's entry, so
+ * every dismissal path (device Back, X, Escape) returns to the origin
+ * screen in one step and the generic Knowledge index never becomes an
+ * intermediate destination. Exported for tests.
+ */
+export interface FocusOpenSnapshot {
+  screen: string;
+  knowledgeFocus: string | null;
+}
+
+export function isFocusOpenTransition(
+  prev: FocusOpenSnapshot,
+  next: FocusOpenSnapshot
+): boolean {
+  return (
+    next.screen === "knowledge" &&
+    prev.screen !== "knowledge" &&
+    next.knowledgeFocus != null &&
+    prev.knowledgeFocus == null
   );
 }
 
@@ -125,6 +165,12 @@ function onPop(e: PopStateEvent) {
     const top = openOverlays[openOverlays.length - 1];
     if (top && top.kind === left.overlay) {
       openOverlays.pop();
+      // F4-return: Back closed the focus-opened Knowledge dialog (physical
+      // key OR a programmatic dismissal delegating to this same path).
+      // History has already adopted the entry below the sentinel — which,
+      // for a focus open, IS the origin screen (no screen entry was ever
+      // pushed for the focus navigation). Step 2 below restores it.
+      if (left.overlay === "dialog") clearFocusedOpen();
       top.close();
     }
   }
@@ -178,6 +224,20 @@ export function initNavHistory(): () => void {
   window.addEventListener("popstate", onPop);
   const unsubscribe = useAppStore.subscribe((s, prev) => {
     if (applyingHistory || s.screen === prev.screen) return;
+    // F4-return — previous-dose focus open: no screen entry is pushed. The
+    // item dialog's sentinel (pushed by ui/dialog.tsx as soon as it opens)
+    // sits directly on the origin screen's entry, which is what makes every
+    // dismissal path return to it in one step. Guard: only when the current
+    // entry is a plain screen entry — an overlay hand-off (More-sheet → SOS
+    // style sequential close+open) keeps its existing sentinel takeover.
+    if (
+      isFocusOpenTransition(prev, s) &&
+      !(readState()?.overlay)
+    ) {
+      focusedOpen = { returnTo: prev.screen };
+      return;
+    }
+    clearFocusedOpen();
     pushScreenEntry(s.screen);
   });
 
@@ -185,6 +245,7 @@ export function initNavHistory(): () => void {
     window.removeEventListener("popstate", onPop);
     unsubscribe();
     openOverlays.length = 0;
+    clearFocusedOpen();
     active = false;
   };
 }
@@ -247,7 +308,50 @@ export function overlayClosedViaUI(kind: OverlayKind) {
       const now = readState();
       if (now && now.overlay === kind) window.history.back();
     });
+    return;
   }
-  // Otherwise history already moved off the sentinel (Back closed the
-  // overlay, or a screen navigation took over its slot) — nothing to do.
+  // History already moved off the sentinel (Back closed the overlay, or a
+  // screen navigation took over its slot) — nothing to pop. Any focus
+  // context is over.
+  if (kind === "dialog") clearFocusedOpen();
+}
+
+/**
+ * F4-return — called by the Knowledge screen when dismissing the dialog it
+ * opened from a previous-dose row via the UI (X, Escape, backdrop).
+ * Delegates to EXACTLY the machinery the physical Back key uses:
+ * history.back() pops the dialog sentinel; onPop then closes the dialog AND
+ * restores the origin screen in the SAME commit. The dialog stays mounted
+ * (covering the generic index) until that commit — nothing flashes — and
+ * the history is left perfectly clean ([root …, origin] — no residue).
+ *
+ * Returns true when the delegation was initiated (or is already in flight —
+ * a second tap is swallowed so the history is never popped twice): the
+ * caller closes nothing. Returns false when there is no focus context (a
+ * generic Knowledge open — close onto the index exactly as before) or when
+ * history already moved (the dismissal IS the Back key itself — onPop does
+ * the closing).
+ */
+export function dismissFocusedDialogViaBack(): boolean {
+  if (!focusedOpen) return false;
+  if (focusedBackPending) return true;
+  const st = readState();
+  if (!st || st.overlay !== "dialog") return false;
+  focusedBackPending = true;
+  window.history.back();
+  return true;
+}
+
+/**
+ * F4-return — the Knowledge screen consumed a focus id that does not
+ * resolve to an item, so no dialog will open. The screen entry the focus
+ * navigation suppressed is restored here (exactly the entry a generic
+ * navigate("knowledge") would have pushed), keeping browser history in
+ * sync with the visible screen. Unreachable through the UI today
+ * (previous-dose rows only render resolvable items) — pure defense.
+ */
+export function focusOpenAbandoned(): void {
+  if (!focusedOpen) return;
+  clearFocusedOpen();
+  pushScreenEntry(useAppStore.getState().screen);
 }

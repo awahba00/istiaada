@@ -1,5 +1,13 @@
 import { TRIGGERS } from "@/data/app/taxonomy";
-import { dayKey, daysBetween, timeBucket } from "./helpers";
+import {
+  dayKey,
+  daysBetween,
+  timeBucket,
+  eventDay,
+  occurrenceTime,
+  daysSinceDayKey,
+  hasKnownEventTime,
+} from "./helpers";
 import { INTERVENTION_BY_ID } from "@/data/app/interventions";
 import type { AppData } from "./types";
 
@@ -47,19 +55,25 @@ export function computeProgress(data: AppData): ProgressMetrics {
     (l) => l.riskLevel <= 3 && new Date(l.ts).getTime() > since30
   );
 
+  // Occurrence order (a backdated event slots by the day it HAPPENED, not
+  // by when it was entered); deterministic tiebreaks for same-day events.
+  // For legacy/same-day records occurrenceTime === the ts epoch, so the
+  // order is exactly the previous ts-based order.
   const relapses = [...data.relapseEvents].sort(
-    (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
+    (a, b) =>
+      occurrenceTime(b) - occurrenceTime(a) ||
+      (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : a.id < b.id ? 1 : -1)
   );
 
   const stopMinutes = (t: string): number =>
     t === "immediately" ? 2 : t === "minutes" ? 10 : t === "under-hour" ? 45 : 120;
 
-  const recentRel = relapses.filter((r) => new Date(r.ts).getTime() > since30);
+  const recentRel = relapses.filter((r) => occurrenceTime(r) > since30);
   // Fixed: the old upper bound `since30 * 2` is a FUTURE timestamp, so
   // olderRel was always empty and stopTrend was permanently null. The
   // comparison window is now days 31–60 before now.
   const olderRel = relapses.filter((r) => {
-    const t = new Date(r.ts).getTime();
+    const t = occurrenceTime(r);
     return t <= since30 && t > since60;
   });
 
@@ -84,7 +98,7 @@ export function computeProgress(data: AppData): ProgressMetrics {
     if (new Date(c.ts).getTime() > since30) c.triggers.forEach((t) => triggerIds.add(t));
   }
   for (const r of relapses) {
-    if (new Date(r.ts).getTime() > since30) r.triggers.forEach((t) => triggerIds.add(t));
+    if (occurrenceTime(r) > since30) r.triggers.forEach((t) => triggerIds.add(t));
   }
 
   // daily stability: check-ins in last 14 days
@@ -97,9 +111,9 @@ export function computeProgress(data: AppData): ProgressMetrics {
   }
 
   // frequency trend: last 4 weeks vs previous 4 weeks
-  const rel4 = relapses.filter((r) => new Date(r.ts).getTime() > now - 28 * 86400000).length;
+  const rel4 = relapses.filter((r) => occurrenceTime(r) > now - 28 * 86400000).length;
   const relPrev4 = relapses.filter((r) => {
-    const t = new Date(r.ts).getTime();
+    const t = occurrenceTime(r);
     return t <= now - 28 * 86400000 && t > now - 56 * 86400000;
   }).length;
   const relapseTrend =
@@ -146,7 +160,9 @@ export function computeProgress(data: AppData): ProgressMetrics {
     relapseTrend,
     checkInStreak: streak,
     daysSinceStart: daysBetween(data.journey.startDate) + 1,
-    daysSinceLastRelapse: lastRel ? daysBetween(lastRel.ts) : null,
+    // Occurrence day (legacy: identical to the previous daysBetween(ts)
+    // arithmetic — same local-midnight floor; backdated: the selected day).
+    daysSinceLastRelapse: lastRel ? daysSinceDayKey(eventDay(lastRel)) : null,
   };
 }
 
@@ -170,7 +186,7 @@ export function computeInsights(data: AppData): ProgressInsights {
       c.triggers.forEach((t) => tc.set(t, (tc.get(t) ?? 0) + 1));
   }
   for (const r of data.relapseEvents) {
-    if (new Date(r.ts).getTime() > since)
+    if (occurrenceTime(r) > since)
       r.triggers.forEach((t) => tc.set(t, (tc.get(t) ?? 0) + 1));
   }
   const topTriggerEntry = [...tc.entries()].sort((a, b) => b[1] - a[1])[0];
@@ -209,6 +225,10 @@ export function computeInsights(data: AppData): ProgressInsights {
     bc.set(b, (bc.get(b) ?? 0) + 1);
   }
   for (const r of data.relapseEvents) {
+    // A user-selected past date carries no event time-of-day — the entry
+    // clock is not the event's. Exclude from time-of-day patterns rather
+    // than fabricating a time; legacy/same-day records count as before.
+    if (!hasKnownEventTime(r)) continue;
     const b = timeBucket(r.ts);
     bc.set(b, (bc.get(b) ?? 0) + 1);
   }

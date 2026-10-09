@@ -1,5 +1,5 @@
 import { KNOWLEDGE } from "@/data/app/knowledge";
-import { dayKey, seededPick } from "./helpers";
+import { dayKey, seededPick, occurrenceTime } from "./helpers";
 import type { AppData, KnowledgeItem } from "./types";
 
 /**
@@ -37,9 +37,11 @@ export function selectDailyDose(ctx: DoseContext): KnowledgeItem {
   const scored = pool.map((item) => {
     let score = 0;
 
-    // 1. Recent relapse (7 days) dominates
+    // 1. Recent relapse (7 days) dominates — by OCCURRENCE day: a backdated
+    //    record counts only while its own selected day is inside the window
+    //    (never as if it happened today).
     const recentRelapse = data.relapseEvents.filter(
-      (r) => Date.now() - new Date(r.ts).getTime() < 7 * 86400000
+      (r) => occurrenceTime(r) > Date.now() - 7 * 86400000
     );
     if (recentRelapse.length > 0) {
       if (item.category === "relapse") score += 100;
@@ -68,7 +70,7 @@ export function selectDailyDose(ctx: DoseContext): KnowledgeItem {
         for (const t of c.triggers) triggerCounts.set(t, (triggerCounts.get(t) ?? 0) + 1);
     }
     for (const r of data.relapseEvents) {
-      if (new Date(r.ts).getTime() > since)
+      if (occurrenceTime(r) > since)
         for (const t of r.triggers) triggerCounts.set(t, (triggerCounts.get(t) ?? 0) + 1);
     }
     const topTriggers = [...triggerCounts.entries()]

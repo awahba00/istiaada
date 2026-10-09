@@ -308,8 +308,8 @@ export function SettingsScreen() {
           <div className="font-bold text-destructive">منطقة الحذر</div>
           <AlertDialog open={eraseConfirmOpen} onOpenChange={setEraseConfirmOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="gap-1.5">
-                <Trash2 className="size-4" />
+              <Button variant="destructive" className="h-auto min-h-9 gap-1.5 whitespace-normal">
+                <Trash2 className="size-4 shrink-0" />
                 مسح كل البيانات المحلية
               </Button>
             </AlertDialogTrigger>

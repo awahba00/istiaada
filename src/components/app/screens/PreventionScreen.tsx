@@ -66,7 +66,7 @@ export function PreventionScreen() {
       {/* ————— If/Then rules ————— */}
       <Card>
         <CardContent className="space-y-3 pt-5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-y-1">
             <div className="font-bold">قواعدي «إذا… إذن»</div>
             <Button
               size="sm"

@@ -6,8 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScreenHeader, EmptyState, InfoNote } from "../shared";
 import { computeInsights } from "@/lib/app/progress";
 import { TRIGGERS, TRIGGER_CATEGORIES } from "@/data/app/taxonomy";
-import { TIME_BUCKET_LABELS, timeBucket } from "@/lib/app/helpers";
-import { Radar, MapPin, Flag, Scissors, Clock } from "lucide-react";
+import { TIME_BUCKET_LABELS, timeBucket, hasKnownEventTime, arabicDate, dayKeyDate } from "@/lib/app/helpers";
+import { deriveTriggerPlans, TRIGGER_PLAN_MIN_EVENTS } from "@/lib/app/trigger-plans";
+import { Radar, MapPin, Flag, Scissors, Clock, ClipboardList } from "lucide-react";
 
 export function TriggerMapScreen() {
   const data = useAppStore();
@@ -28,6 +29,10 @@ export function TriggerMapScreen() {
       m.set(b, (m.get(b) ?? 0) + 1);
     }
     for (const r of data.relapseEvents) {
+      // A user-selected past occurrence day carries no event time-of-day
+      // (the entry clock is not the event's) — excluded rather than given a
+      // fabricated time. Legacy/same-day records count as before.
+      if (!hasKnownEventTime(r)) continue;
       const b = timeBucket(r.ts);
       m.set(b, (m.get(b) ?? 0) + 1);
     }
@@ -57,6 +62,7 @@ export function TriggerMapScreen() {
           title="نحتاج قليلًا من السجل أولًا"
           body="سجّل ٣–٤ فحوصات رغبة (حتى الخفيف منها) وسيبدأ التطبيق برسم أنماطك: أكثر المحفزات، أخطر الأوقات، ونقطة التدخل الأفضل."
         />
+        <TriggerPlanSection />
         <InfoNote>
           الغرض مش تسجيل التاريخ — بل اكتشاف أبكر نقطة تدخل في سلسلتك.
         </InfoNote>
@@ -123,10 +129,10 @@ export function TriggerMapScreen() {
               const isMax = count === maxBucket && count > 0;
               return (
                 <div key={b} className="flex items-center gap-3 text-sm">
-                  <span className="w-36 shrink-0 text-xs text-muted-foreground">
+                  <span className="w-36 min-w-0 text-xs text-muted-foreground">
                     {TIME_BUCKET_LABELS[b]}
                   </span>
-                  <div className="h-6 flex-1 overflow-hidden rounded-lg bg-muted">
+                  <div className="h-6 min-w-10 flex-1 overflow-hidden rounded-lg bg-muted">
                     <div
                       className={`flex h-full items-center justify-end rounded-lg pe-2 text-2xs font-bold transition-all ${
                         isMax ? "bg-destructive text-destructive-foreground" : "bg-primary/30"
@@ -179,6 +185,13 @@ export function TriggerMapScreen() {
         </CardContent>
       </Card>
 
+      {/* ————— «خطة التعامل مع المحفزات» —————
+          TriggerMap shows what has been recurring; this turns a
+          sufficiently repeated FIRST-TRIGGER pattern (explicit review
+          answers to «إيه اللي بدأ الموضوع؟» only) into a practical action
+          plan. Derived at runtime — nothing persisted, no new schema. */}
+      <TriggerPlanSection />
+
       {insights.topTrigger && (
         <InfoNote>
           {/* B2 — the label must name what the note shows: the most
@@ -203,5 +216,85 @@ export function TriggerMapScreen() {
         دي أنماط سلوكية مرصودة من سجلك — ومش تشخيص. الهدف العملي: أبكر نقطة تقدر توقف عندها.
       </InfoNote>
     </div>
+  );
+}
+
+/**
+ * «خطة التعامل مع المحفزات» — every qualifying trigger (same explicit
+ * review first-trigger in ≥3 distinct reviewed events) gets its own card,
+ * strongest pattern first. The count and the most recent occurrence date
+ * are shown so the user can judge how current the pattern is — explicit
+ * product thresholds, never certainty or diagnosis. No new navigation
+ * destination; readable at all three text sizes.
+ */
+function TriggerPlanSection() {
+  const events = useAppStore((s) => s.relapseEvents);
+  const plans = useMemo(() => deriveTriggerPlans(events), [events]);
+
+  if (plans.length === 0) {
+    return (
+      <Card>
+        <CardContent className="space-y-3 pt-5">
+          <div className="flex items-center gap-2 font-bold">
+            <ClipboardList className="size-4 text-primary" />
+            خطة التعامل مع المحفزات
+          </div>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            لسه مفيش خطة شخصية — وده طبيعي. الخطة بتظهر لما نفس المحفز يبدأ
+            الموضوع في {TRIGGER_PLAN_MIN_EVENTS} مراجعات أو أكتر، من إجابتك
+            على «إيه اللي بدأ الموضوع؟» في المراجعة الهادئة. أكمل مراجعاتك
+            براحتك، وهتلاقيها هنا لما النمط يتكرر.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="space-y-4 pt-5">
+        <div className="flex items-center gap-2 font-bold">
+          <ClipboardList className="size-4 text-primary" />
+          خطة التعامل مع المحفزات
+        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          من إجاباتك في المراجعة على «إيه اللي بدأ الموضوع؟» — لو نفس المحفز
+          بدأ الموضوع مرات كتيرة، دي خطوتك العملية للمرات الجاية. الأرقام
+          عتبة لعرض خطة مفيدة — مش تشخيص ولا دليل قاطع.
+        </p>
+        {plans.map((p) => (
+          <div
+            key={p.triggerId}
+            className="rounded-2xl border border-border bg-background p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold leading-snug">{p.label}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
+                  p.level === "established"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {p.level === "established" ? "نمط متكرر" : "خطة مبدئية"}
+              </span>
+            </div>
+            <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              بدأ الموضوع في {p.count} مراجعة · آخر مرة: {arabicDate(dayKeyDate(p.lastOccurrence))}
+            </div>
+            <ol className="mt-2.5 space-y-2">
+              {p.steps.map((s, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-2xs font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0">{s}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

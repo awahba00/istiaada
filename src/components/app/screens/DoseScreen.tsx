@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScreenHeader, InfoNote } from "../shared";
 import { selectDailyDose, doseStatusFor } from "@/lib/app/dose-engine";
-import { dayKey, arabicDate } from "@/lib/app/helpers";
+import { dayKey, arabicDate, occurrenceTime } from "@/lib/app/helpers";
 import { DOSE_EXAMPLES } from "@/data/app/dose-examples";
 import { KNOWLEDGE, CATEGORY_LABELS } from "@/data/app/knowledge";
 import { JOURNEY_STAGES, JOURNEY_DISCLAIMER } from "@/data/app/taxonomy";
@@ -94,7 +94,15 @@ export function DoseScreen() {
             </div>
           ) : (
             <>
-              <div className="flex gap-2">
+              {/* Responsive action row: side-by-side whenever both fit (the
+                  normal case — primary keeps flex-1, the skip action grows
+                  with it); at larger text sizes the nowrap labels can no
+                  longer share one line, so the row wraps and each action
+                  takes a full-width row — no overlap, no clipping, no
+                  horizontal overflow, no text-size override. Variant styling
+                  (filled vs outline) keeps the primary/secondary visual
+                  distinction at every size. */}
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="lg"
                   className="flex-1 gap-1.5"
@@ -107,7 +115,7 @@ export function DoseScreen() {
                   size="lg"
                   variant="outline"
                   onClick={() => logDose(today, dose.id, "skipped")}
-                  className="gap-1.5"
+                  className="flex-1 gap-1.5"
                   title="البطاقة نفسها موجودة هنا لو حبيت تقراها دلوقتي — والجرعة الجديدة مستنياك بكرة."
                 >
                   <SkipForward className="size-4" />
@@ -127,7 +135,9 @@ export function DoseScreen() {
       <InfoNote>
         الجرعة دي اتختارت بناءً على حالتك دلوقتي —{" "}
         {data.relapseEvents.some(
-          (r) => Date.now() - new Date(r.ts).getTime() < 7 * 86400000
+          // Occurrence-based (a backdated event only counts while its OWN
+          // selected day is within the window — never as "today").
+          (r) => occurrenceTime(r) > Date.now() - 7 * 86400000
         )
           ? "علشان سجلّك فيه زَلّة أو انتكاسة خلال الأسبوع ده، بنفضّل موضوعات الزلّة والانتكاسة والعودة."
           : "ولا يهمك — تقدر تعدّي أي جرعة"}

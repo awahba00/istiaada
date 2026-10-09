@@ -240,7 +240,7 @@ export function EmergencyMode() {
           </p>
           <Button
             size="lg"
-            className="min-w-56"
+            className="w-[min(14rem,100%)]"
             data-autofocus
             onClick={() => {
               stopEmergency();
@@ -331,7 +331,11 @@ export function EmergencyMode() {
           {/* B — swap: the recommendation is impossible right now? Get a
               DIFFERENT one. Excluded, never re-recommended this session, and
               NO log is written — swapping is not performing. */}
-          <Button variant="outline" className="w-full" onClick={swapIntervention}>
+          <Button
+            variant="outline"
+            className="h-auto min-h-9 w-full whitespace-normal"
+            onClick={swapIntervention}
+          >
             مش ممكن دلوقتي — عوّضني بواحد تاني
           </Button>
 
@@ -367,10 +371,10 @@ export function EmergencyMode() {
           </Button>
           <Button
             size="lg"
-            className="h-16 w-full justify-start gap-3 text-start text-base"
+            className="h-16 w-full justify-start gap-3 text-start text-base whitespace-normal"
             onClick={() => nextFromIntervention(false)}
           >
-            <Siren className="size-6" />
+            <Siren className="size-6 shrink-0" />
             {escalationLeft ? "لأ — لسه عالي: جرّب تدخل أقوى" : "لأ — لسه عالي"}
           </Button>
         </div>

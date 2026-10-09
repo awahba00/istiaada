@@ -356,9 +356,12 @@ export function Onboarding() {
       </div>
 
       {/* Nav buttons — sticky so they stay reachable when the mobile
-          keyboard is open on text steps. Hidden on the welcome screen. */}
+          keyboard is open on text steps. Hidden on the welcome screen.
+          flex-wrap: at large text sizes the pair (السابق + التالي/ابدأ
+          رحلتي) can outgrow a 320px track — the primary then stacks on its
+          own line instead of pushing off-screen. */}
       {inWizard && (
-        <div className="sticky bottom-0 -mx-4 mt-8 flex items-center justify-between gap-3 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="sticky bottom-0 -mx-4 mt-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
           <Button
             variant="outline"
             size="lg"

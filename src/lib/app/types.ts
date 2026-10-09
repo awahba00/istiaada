@@ -79,7 +79,19 @@ export interface RelapseReview {
 
 export interface RelapseEvent {
   id: string;
+  /** Entry timestamp (when the record was saved) — ISO. */
   ts: string;
+  /**
+   * Local calendar day (YYYY-MM-DD) the event OCCURRED, from the Quick Log
+   * «تاريخ الواقعة» selector. Optional and backward-compatible: records
+   * created before the selector (and any log saved for "today") omit it or
+   * equal the entry day, so the occurrence falls back to the local day of
+   * `ts` — for them the entry day IS the occurrence day. Day-granular by
+   * design: the app never fabricates an event time-of-day the user did not
+   * provide. Sorting, date-window metrics, and history display use this
+   * day; `ts` keeps its meaning unchanged.
+   */
+  eventDate?: string;
   timeToStop: TimeToStop;
   /** Kept for legacy compatibility — NOT the definition of a relapse. */
   continued: boolean;

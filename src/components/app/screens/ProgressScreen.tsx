@@ -20,7 +20,7 @@ export function ProgressScreen() {
   const stageIndex = JOURNEY_STAGES.indexOf(stage);
 
   return (
-    <div className="space-y-5">
+    <div className="@container space-y-5">
       <ScreenHeader
         title="التقدم"
         subtitle="مؤشرات متعددة حقيقية — مفيش نسبة تعافٍ زائفة، ولا يوم بيرجع للصفر."
@@ -65,8 +65,11 @@ export function ProgressScreen() {
         </CardContent>
       </Card>
 
-      {/* Days-clean + check-in continuity — one metric among many, not the center */}
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* Days-clean + check-in continuity — one metric among many, not the center.
+          @min-[9.7rem]: StatTile pairs stack below that container width
+          (happens at 150% text on narrow phones) — a 2-col forced split
+          there clips the value+direction arrow outside the tile. */}
+      <div className="grid grid-cols-1 gap-2.5 @min-[9.7rem]:grid-cols-2">
         <StatTile
           label="أيام من آخر زَلّة"
           value={m.daysSinceLastRelapse != null ? String(m.daysSinceLastRelapse) : "—"}
@@ -82,12 +85,12 @@ export function ProgressScreen() {
 
       {/* Core indicators */}
       <Card>
-        <CardContent className="space-y-4 pt-5">
+        <CardContent className="@container space-y-4 pt-5">
           <div className="flex items-center gap-2 font-bold">
             <Zap className="size-4 text-primary" />
             مؤشرات المهارات
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 @min-[9.7rem]:grid-cols-2">
             <StatTile
               label="رغبات اتعاملت معاها"
               value={String(m.urgesHandled)}
@@ -117,12 +120,12 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <CardContent className="space-y-4 pt-5">
+        <CardContent className="@container space-y-4 pt-5">
           <div className="flex items-center gap-2 font-bold">
             <Clock className="size-4 text-primary" />
             مؤشرات الاستجابة والاستقرار
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 @min-[9.7rem]:grid-cols-2">
             <StatTile
               label="متوسط مدة الجلسة"
               value={
