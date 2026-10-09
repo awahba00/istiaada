@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 export function ScreenHeader({
   title,
@@ -110,6 +110,43 @@ export function NumberScale({
   low: string;
   high: string;
 }) {
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  // F8 — arrow-key navigation for the rating radiogroup, RTL-aware.
+  // The DOM order is 1..5 and the page is dir=rtl, so the ladder renders
+  // right→left: the NEXT higher number sits VISUALLY to the LEFT. Per the
+  // WAI-ARIA authoring practices for right-to-left radio groups, Left and
+  // Right swap roles (Left = next, Right = previous); Up/Down keep the
+  // conventional previous/next. Home goes to 1, End to 5. Selection
+  // follows focus (standard radio behavior), and focus moves with the
+  // selection so one-handed keyboard use never gets stranded.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, n: number) => {
+    let next: number | null = null;
+    switch (e.key) {
+      case "ArrowLeft": // RTL: visually leftward = higher number
+      case "ArrowDown":
+        next = Math.min(5, n + 1);
+        break;
+      case "ArrowRight": // RTL: visually rightward = lower number
+      case "ArrowUp":
+        next = Math.max(1, n - 1);
+        break;
+      case "Home":
+        next = 1;
+        break;
+      case "End":
+        next = 5;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    if (next === n) return;
+    onChange(next);
+    const buttons = groupRef.current?.querySelectorAll<HTMLButtonElement>("[role=\"radio\"]");
+    buttons?.[next - 1]?.focus();
+  };
+
   return (
     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
       <div className="mb-1.5 font-semibold">{label}</div>
@@ -120,8 +157,9 @@ export function NumberScale({
       {/* The 1–5 ladder: one row of five numerals — comfortable one-hand
           targets at 320px (~44px each) and easy to compare at a glance.
           In RTL flow the row reads ١ → ٥ from the right, matching Arabic
-          reading order. */}
-      <div className="flex gap-2" role="radiogroup" aria-label={label}>
+          reading order. Roving tabindex (F8): the selected rating is the
+          tab stop; arrow keys walk the group without extra tab presses. */}
+      <div className="flex gap-2" role="radiogroup" aria-label={label} ref={groupRef}>
         {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
           <button
             key={n}
@@ -129,7 +167,9 @@ export function NumberScale({
             role="radio"
             aria-checked={value === n}
             aria-label={`${label}: ${n} من ٥`}
+            tabIndex={value === n ? 0 : -1}
             onClick={() => onChange(n)}
+            onKeyDown={(e) => handleKeyDown(e, n)}
             className={cn(
               "tnum h-12 flex-1 rounded-xl border text-base font-bold transition-all",
               value === n

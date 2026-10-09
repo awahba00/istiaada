@@ -95,7 +95,7 @@ console.log("A — Button label wrap escapes (proven overflow cases)");
   check(
     "Emergency reassessment «لأ — لسه عالي…» wraps (369px label in a 260px track at 320×150%)",
     emergencySrc.includes(
-      'className="h-16 w-full justify-start gap-3 text-start text-base whitespace-normal"'
+      'className="h-auto min-h-16 w-full justify-start gap-3 whitespace-normal py-4 text-start text-base"'
     )
   );
   check(
@@ -216,8 +216,8 @@ console.log("H — Previously closed responsive rules intact");
     homeSrc.includes("flex-wrap")
   );
   check(
-    "Emergency step 1-2 «تم» CTAs keep their h-16 sizing (were never broken)",
-    emergencySrc.includes('className="h-16 w-full text-lg font-bold"')
+    "Emergency step 1-2 «تم» CTAs keep h-16 as a floor and wrap (F7: flex height, never clipped)",
+    emergencySrc.includes('className="h-auto min-h-16 w-full whitespace-normal py-4 text-lg font-bold"')
   );
 }
 

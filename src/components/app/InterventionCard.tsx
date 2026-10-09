@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "./Timer";
 import { MapPin, Clock, ArrowLeft, Info } from "lucide-react";
-import { useState } from "react";
 
 export function InterventionCard({
   iv,
@@ -16,7 +15,10 @@ export function InterventionCard({
   onComplete?: () => void;
   compactTimer?: boolean;
 }) {
-  const [started, setStarted] = useState(false);
+  // F11 — the old `started` state was SET by the Countdown's onComplete and
+  // never READ anywhere: dead state (and a hidden StrictMode double-fire
+  // hazard while it was written from inside a state updater). The timer is
+  // self-contained now; completion needs no card-level bookkeeping.
   return (
     <Card className="overflow-hidden">
       <div className="bg-primary/10 px-5 py-3.5 font-bold text-primary">{iv.name}</div>
@@ -56,10 +58,10 @@ export function InterventionCard({
             {compactTimer ? (
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium">المؤقت:</span>
-                <Countdown seconds={iv.durationSec} compact onComplete={() => setStarted(true)} />
+                <Countdown seconds={iv.durationSec} compact />
               </div>
             ) : (
-              <Countdown seconds={iv.durationSec} onComplete={() => setStarted(true)} />
+              <Countdown seconds={iv.durationSec} />
             )}
           </div>
         )}

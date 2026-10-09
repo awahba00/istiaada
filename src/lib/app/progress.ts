@@ -50,9 +50,12 @@ export function computeProgress(data: AppData): ProgressMetrics {
   const handled = data.urgeChecks.filter((c) => c.outcome === "handled");
   const handled7 = handled.filter((c) => new Date(c.ts).getTime() > since7);
 
-  // Early intervention = responding at degree ≤ 3 (before the immediate zone)
+  // Early intervention = responding at degree ≤ 3 (before the immediate zone).
+  // F4 — logs WITHOUT a degree (manual emergency sessions) cannot claim to
+  // be "early": they were panic-button launches, not low-degree cuts, and
+  // counting them would inflate the metric with unreported states.
   const early = data.interventionLogs.filter(
-    (l) => l.riskLevel <= 3 && new Date(l.ts).getTime() > since30
+    (l) => l.riskLevel != null && l.riskLevel <= 3 && new Date(l.ts).getTime() > since30
   );
 
   // Occurrence order (a backdated event slots by the day it HAPPENED, not
@@ -212,8 +215,13 @@ export function computeInsights(data: AppData): ProgressInsights {
       }
     : null;
 
-  // Avg risk at intervention start (lower = earlier response)
-  const risks = data.interventionLogs.map((l) => l.riskLevel);
+  // Avg risk at intervention start (lower = earlier response).
+  // F4 — only logs that actually carry a user-reported degree enter the
+  // average; manual sessions (no degree) are excluded rather than counted
+  // as a fabricated 0.
+  const risks = data.interventionLogs
+    .map((l) => l.riskLevel)
+    .filter((r): r is number => r != null);
   const avgRiskAtIntervention = risks.length
     ? Math.round((risks.reduce((s, r) => s + r, 0) / risks.length) * 10) / 10
     : null;

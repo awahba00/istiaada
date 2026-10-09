@@ -19,11 +19,19 @@ export function useEmergencyLauncher() {
   const deviceNeeds = useAppStore((s) => s.userProfile.deviceNeeds);
 
   return useCallback(
+    // F4 — every ALWAYS-ON entry point is MANUAL: the caller passes a
+    // protocol intensity (5 for the FAB's maximum variant, 4 for the
+    // QuickGuide row), never a user-reported degree. `assessed: false`
+    // keeps the overlay's degree badge and the written log honest
+    // («أقصى استجابة — من غير تقييم», no fabricated riskLevel). The ONLY
+    // assessed launches are the Urge flow and Home's high-state card,
+    // which call startEmergency/this launcher with a real recent check.
     (riskLevel = 4, triggers: string[] = []) =>
       startEmergency({
         riskLevel,
         triggers,
         workSafe: deviceNeeds === "yes",
+        assessed: false,
       }),
     [startEmergency, deviceNeeds]
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +24,15 @@ export function UrgeScreen() {
   const navigate = useAppStore((s) => s.navigate);
 
   const [phase, setPhase] = useState<Phase>("input");
+  // F2 — time-boxed in-flight guard for the record-minting CTAs (the
+  // assessment submit and the intervention card's «تم"). React's phase
+  // re-render cannot land inside the same tick as a double-tap — and the
+  // zustand write is immediate — so a second tap inside the window would
+  // mint a duplicate record with the STALE pre-submit state. The window
+  // auto-expires: later, genuinely separate intents (a re-check, the card's
+  // own «تم» seconds later) submit normally, and a failed submission can
+  // never leave the CTA permanently disabled.
+  const submitGuardAtRef = useRef(0);
   const [urge, setUrge] = useState(2);
   const [proximity, setProximity] = useState(2);
   const [control, setControl] = useState(2);
@@ -56,6 +65,30 @@ export function UrgeScreen() {
   const checkResolvedExternally =
     savedCheck != null &&
     (savedCheckOutcome === "handled" || savedCheckOutcome === "acted");
+
+  // F10 — a resolved check (handled here, or closed by Emergency Mode /
+  // acting) ENDS the situation: the next assessment must start genuinely
+  // fresh instead of inheriting the old answers. This is React's sanctioned
+  // render-phase state adjustment (conditional + converging — it re-renders
+  // immediately, no effect, no stale frame): each resolved check id triggers
+  // exactly one reset. Intentional re-checks of the SAME unresolved state
+  // («فحص جديد» / re-compute) keep the answers — the user is adjusting them.
+  const [resolvedResetId, setResolvedResetId] = useState<string | null>(null);
+  if (checkResolvedExternally && savedCheck && resolvedResetId !== savedCheck.id) {
+    setResolvedResetId(savedCheck.id);
+    setUrge(2);
+    setProximity(2);
+    setControl(2);
+    setAlone(false);
+    setLateNight(false);
+    setInBed(false);
+    setBrowsingStarted(false);
+    setDeviceNeededNow(data.userProfile.deviceNeeds === "yes");
+    setTriggers([]);
+    setIntervention(null);
+    setPerformedLogId(null);
+    setPhase("input");
+  }
 
   const assessment = useMemo(
     () =>
@@ -92,6 +125,14 @@ export function UrgeScreen() {
   ];
 
   const compute = () => {
+    // F2 — one submission intent → at most one record: the time-boxed guard
+    // swallows the double-tap window deterministically (the zustand write is
+    // immediate, the unmount is not). A SECOND, later intent (user re-opens
+    // the form and submits again) is a genuinely new evaluation and still
+    // gets its own record.
+    const now = Date.now();
+    if (now - submitGuardAtRef.current < 800) return;
+    submitGuardAtRef.current = now;
     const check: UrgeCheckType = {
       id: uid("uc-"),
       ts: nowIso(),
@@ -123,8 +164,14 @@ export function UrgeScreen() {
   };
 
   // D — the ONLY path that writes an intervention log in this flow: the
-  // card's own completion button (the user's «تم» = performed).
+  // card's own completion button (the user's «تم» = performed). F2 — the
+  // same time-boxed guard: a double-tap on «تم» must not mint two logs;
+  // this is a SEPARATE intent from the submit seconds earlier, so the window
+  // (not a boolean) is what keeps both intents working.
   const completeIntervention = () => {
+    const now = Date.now();
+    if (now - submitGuardAtRef.current < 800) return;
+    submitGuardAtRef.current = now;
     if (intervention) {
       const id = uid("ivl-");
       logIntervention({
@@ -156,10 +203,13 @@ export function UrgeScreen() {
     }
     if (outcome === "escalated") {
       setPerformedLogId(null);
+      // F4 — a REAL reported degree from THIS flow's assessment: the
+      // emergency overlay may honestly show «درجة الحالة: N من 5».
       startEmergency({
         riskLevel: assessment.level,
         triggers,
         workSafe: deviceNeededNow,
+        assessed: true,
       });
       return;
     }
@@ -171,6 +221,9 @@ export function UrgeScreen() {
       useAppStore.getState().setInterventionSuccess(performedLogId, true);
     }
     setPerformedLogId(null);
+    // F10 — handled ends the situation: the derived reset above fires on
+    // the next render (the store now marks the check "handled") and
+    // starts a genuinely fresh assessment.
     setPhase("input");
   };
 
@@ -241,7 +294,20 @@ export function UrgeScreen() {
                 step («إيه اللي بدأ الموضوع؟») so one vocabulary runs
                 across the product. Optional on purpose — collapsed by
                 default, never required to compute the risk score. */}
-            <span>إيه اللي بدأ الرغبة دي؟ (اختياري)</span>
+            <span className="flex min-w-0 flex-wrap items-center gap-2">
+              إيه اللي بدأ الرغبة دي؟ (اختياري)
+              {/* F9 — the selection state must stay visible when the section
+                  is COLLAPSED: a quiet count chip beside the label. English
+                  digits per the two-scope screens' degree convention. */}
+              {triggers.length > 0 && (
+                <span
+                  className="rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary"
+                  aria-label={`${triggers.length} محفزات محددة`}
+                >
+                  محدد: {triggers.length}
+                </span>
+              )}
+            </span>
             <ChevronLeft className="size-4 shrink-0 text-muted-foreground transition-transform group-open:-rotate-90" />
           </summary>
           <div className="px-5 pb-5">
@@ -260,9 +326,21 @@ export function UrgeScreen() {
 
         {/* Sticky compute CTA — always reachable without scrolling (I1):
             under stress the user must see the next action immediately. The
-            label frames the payoff (the right step), not the math. */}
-        <div className="sticky bottom-20 z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
-          <Button size="lg" className="h-14 w-full text-base font-bold shadow-xl" onClick={compute}>
+            label frames the payoff (the right step), not the math.
+            F1 — the wrapper is pointer-events-none and only the button
+            re-enables hits: the old full-band gradient intercepted taps
+            meant for chips partially visible beneath it — the exact
+            "tap a chip, submit a check" accident. The button stays the
+            only opaque, honest hit target. The offset is chrome-aware
+            (safe area + the rem-scaled bottom-nav band) instead of a
+            single-viewport magic number, and the button height flexes
+            (F6/F7) so large text sizes wrap instead of clipping. */}
+        <div className="pointer-events-none sticky bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+          <Button
+            size="lg"
+            className="pointer-events-auto h-auto min-h-14 w-full whitespace-normal text-base font-bold shadow-xl"
+            onClick={compute}
+          >
             اعرف أنسب خطوة
           </Button>
         </div>
@@ -293,9 +371,11 @@ export function UrgeScreen() {
           {urgent ? (
             <>
               <div className="text-sm leading-relaxed text-muted-foreground">
+                {/* F4 — English digits in the degree display of the two
+                    experiences («5 من 5», never the mixed «5 من ٥»). */}
                 درجة حالتك الآن:{" "}
                 <b className="tnum" style={{ color: riskColor }}>
-                  {assessment.level} من ٥
+                  {assessment.level} من 5
                 </b>{" "}
                 · {rl.label}
               </div>
@@ -313,7 +393,7 @@ export function UrgeScreen() {
                 style={{ color: riskColor }}
               >
                 {assessment.level}
-                <span className="text-2xl text-muted-foreground"> من ٥</span>
+                <span className="text-2xl text-muted-foreground"> من 5</span>
               </div>
               <div className="text-lg font-bold" style={{ color: riskColor }}>
                 {rl.label}
@@ -323,14 +403,21 @@ export function UrgeScreen() {
           <p className="text-sm leading-relaxed text-muted-foreground">{rl.description}</p>
           {rl.examples && (
             <div className="flex flex-wrap justify-center gap-1.5">
-              {rl.examples.map((e) => (
-                <span
-                  key={e}
-                  className="rounded-full bg-warning/10 px-3 py-1 text-xs text-warning"
-                >
-                  {e}
-                </span>
-              ))}
+              {/* F12 — «فتحت المصدر بالفعل» asserts the user ALREADY started
+                  browsing. Show it only when they said so; otherwise the
+                  example would gaslight a user who hasn't opened anything.
+                  The rationalization example («آخر مرة وأوقف») stays — it is
+                  state-agnostic. */}
+              {rl.examples
+                .filter((e) => e !== "فتحت المصدر بالفعل" || browsingStarted)
+                .map((e) => (
+                  <span
+                    key={e}
+                    className="rounded-full bg-warning/10 px-3 py-1 text-xs text-warning"
+                  >
+                    {e}
+                  </span>
+                ))}
             </div>
           )}
           {!urgent && (
@@ -376,7 +463,15 @@ export function UrgeScreen() {
                 </Button>
               </CardContent>
             </Card>
-            <Button variant="outline" className="w-full" onClick={() => setPhase("input")}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                // F10 — intentional re-check of the SAME unresolved state:
+                // answers are deliberately KEPT (the user adjusts them).
+                setPhase("input");
+              }}
+            >
               فحص جديد
             </Button>
           </div>
@@ -426,10 +521,12 @@ export function UrgeScreen() {
               variant="outline"
               className="w-full"
               onClick={() =>
+                // F4 — a real reported degree from THIS check.
                 startEmergency({
                   riskLevel: assessment.level,
                   triggers,
                   workSafe: deviceNeededNow,
+                  assessed: true,
                 })
               }
             >
@@ -440,9 +537,14 @@ export function UrgeScreen() {
             {/* E — sticky primary CTA (the input screen's I1 philosophy): at
                 the urgent moment the recommended action must be reachable
                 WITHOUT scrolling — it never depends on how much content sits
-                above it. */}
-            <div className="sticky bottom-20 z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
-              <Button size="lg" className="h-14 w-full text-base font-bold shadow-xl" onClick={pickIntervention}>
+                above it. F1 — pointer-events pass through the gradient band
+                to whatever sits beneath; only the button takes taps. */}
+            <div className="pointer-events-none sticky bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+              <Button
+                size="lg"
+                className="pointer-events-auto h-auto min-h-14 w-full whitespace-normal text-base font-bold shadow-xl"
+                onClick={pickIntervention}
+              >
                 ابدأ التدخل المقترح دلوقتي
               </Button>
             </div>
@@ -471,21 +573,27 @@ export function UrgeScreen() {
               </p>
             )}
             {/* E — sticky primary: the degree-4+ recommended action stays
-                reachable without scrolling, mirroring I1. */}
-            <div className="sticky bottom-20 z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+                reachable without scrolling, mirroring I1. F7 — the
+                highest-priority emergency CTA flexes (min-height, wrapping,
+                padded) so 320px + 150% text wraps to two honest lines
+                instead of clipping; F1 — the gradient band passes taps
+                through, only the button takes them. */}
+            <div className="pointer-events-none sticky bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
               <Button
                 size="lg"
                 variant="destructive"
-                className="h-16 w-full text-lg font-bold"
+                className="pointer-events-auto h-auto min-h-16 w-full whitespace-normal py-4 text-lg font-bold"
                 onClick={() =>
+                  // F4 — a real reported degree from THIS check.
                   startEmergency({
                     riskLevel: assessment.level,
                     triggers,
                     workSafe: deviceNeededNow,
+                    assessed: true,
                   })
                 }
               >
-                <Siren className="size-6" />
+                <Siren className="size-6 shrink-0" />
                 تدخّل دلوقتي — وضع الطوارئ
               </Button>
             </div>
@@ -549,7 +657,7 @@ export function UrgeScreen() {
         <Button
           size="lg"
           variant="outline"
-          className="h-14 w-full justify-start gap-3 border-success/40 text-start"
+          className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal border-success/40 py-3 text-start"
           onClick={() => finishOutcome("handled")}
         >
           <Eye className="size-5 text-success" />
@@ -569,7 +677,7 @@ export function UrgeScreen() {
         <Button
           size="lg"
           variant="outline"
-          className="h-14 w-full justify-start gap-3 border-warning/40 text-start"
+          className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal border-warning/40 py-3 text-start"
           onClick={() => finishOutcome("escalated")}
         >
           <Siren className="size-5 text-warning" />
@@ -583,7 +691,7 @@ export function UrgeScreen() {
         <Button
           size="lg"
           variant="outline"
-          className="h-14 w-full justify-start gap-3 text-start"
+          className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal py-3 text-start"
           onClick={() => finishOutcome("acted")}
         >
           <LifeBuoy className="size-5" />

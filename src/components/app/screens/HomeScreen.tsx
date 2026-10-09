@@ -124,6 +124,7 @@ export function HomeScreen() {
   const data = useAppStore();
   const navigate = useAppStore((s) => s.navigate);
   const launchEmergency = useEmergencyLauncher();
+  const startEmergency = useAppStore((s) => s.startEmergency);
 
   const lastCheck = data.urgeChecks.length
     ? data.urgeChecks[data.urgeChecks.length - 1]
@@ -233,9 +234,20 @@ export function HomeScreen() {
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
               variant="destructive"
-              onClick={() =>
-                launchEmergency(lastCheck?.riskLevel ?? 4, lastCheck?.triggers ?? [])
-              }
+              onClick={() => {
+                // F4 — the high-state banner re-launches from a REAL recent
+                // check (homeState "high" requires a live ≥4 degree within
+                // 3h), so the number is a user-reported degree, not a
+                // protocol intensity: assessed = true keeps the overlay's
+                // degree badge and the written log truthful. The manual
+                // launcher (assessed: false) stays for the always-on rows.
+                startEmergency({
+                  riskLevel: lastCheck?.riskLevel ?? 4,
+                  triggers: lastCheck?.triggers ?? [],
+                  workSafe: data.userProfile.deviceNeeds === "yes",
+                  assessed: true,
+                });
+              }}
               className="gap-1.5"
             >
               <Siren className="size-4" />

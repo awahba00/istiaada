@@ -49,7 +49,15 @@ export interface InterventionLog {
   id: string;
   ts: string;
   interventionId: string;
-  riskLevel: number;
+  /**
+   * F4 — the state degree the session STARTED at, when the user actually
+   * reported one (urge-check flow, or Home's high-state card re-launching
+   * from a real check). Manual emergency sessions (FAB / QuickGuide /
+   * sidebar / More sheet) carry no reported degree and must not fabricate
+   * one: the field stays undefined and every consumer treats it as
+   * "no degree reported" (never as 0).
+   */
+  riskLevel?: number;
   source: "urge-check" | "emergency" | "manual" | "plan";
   success?: boolean;
 }

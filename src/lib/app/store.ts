@@ -39,6 +39,17 @@ export interface EmergencyContext {
   riskLevel: number;
   triggers: string[];
   workSafe: boolean;
+  /**
+   * F4 — truthfulness of `riskLevel`. True ONLY when the number is a real
+   * degree the user reported (Urge flow at any entry, or Home's high-state
+   * card re-launching a real recent check). Manual entries (bottom-nav
+   * FAB, QuickGuide row, desktop sidebar, More sheet) pass a protocol
+   * intensity — the overlay still runs the maximum/default protocol, but
+   * the UI and the written log must never present that number as a
+   * "reported state degree". Optional so existing call sites and stored
+   * contexts stay compatible; absent = manual.
+   */
+  assessed?: boolean;
 }
 
 interface AppStore extends AppData {

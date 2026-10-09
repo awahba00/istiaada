@@ -20,14 +20,60 @@ export interface InterventionQuery {
   excludeIds?: string[];
 }
 
+/**
+ * F5 — the spiritual gate is a HARD eligibility constraint, not a score
+ * penalty. When settings.spiritualContent is off, spiritual interventions
+ * are removed from the candidate set ENTIRELY (both the normal selection
+ * and the escalation set, at every fallback level). No amount of success
+ * history, context fit, or competitor exclusion can surface one: a user
+ * who opted out of spiritual content must never be handed a spiritual
+ * practice in a crisis moment. The old soft −12 penalty could still lose
+ * to a strong-enough context, which is exactly the leak this closes.
+ */
+export const SPIRITUAL_INTERVENTION_IDS = ["wudu", "prayer-2", "dhikr-anchor"];
+
+export function isSpiritualIntervention(iv: Intervention): boolean {
+  return SPIRITUAL_INTERVENTION_IDS.includes(iv.id);
+}
+
+/**
+ * F3 — the FIXED ACT-FIRST protocol steps EmergencyMode walks every session
+ * through BEFORE the recommended step-3 intervention: step 1 «اقفل المصدر»
+ * (close-source) and step 2 «اخرج من المكان لأي مكان فيه ناس أو حركة»
+ * (leave-room / shared-space). They are seeded into the session's exclusion
+ * set so the step-3 recommendation never repeats an action the user has
+ * already completed in this same session.
+ */
+export const ACT_FIRST_FIXED_ACTION_IDS = [
+  "close-source",
+  "leave-room",
+  "shared-space",
+] as const;
+
+/**
+ * Eligibility for THIS user's settings: everything except spiritual
+ * interventions when the gate is closed. Shared by the engine selectors
+ * and by the UI's swap-exhaustion check so both agree on what "no candidate
+ * left" means (otherwise the swap loop could keep walking over spiritual
+ * ids the engine would never recommend, and the terminal state would be
+ * unreachable for gate-closed users).
+ */
+export function isEligibleIntervention(iv: Intervention, data: AppData): boolean {
+  return data.settings.spiritualContent || !isSpiritualIntervention(iv);
+}
+
 export function selectIntervention(query: InterventionQuery): Intervention {
-  const scored = INTERVENTIONS.map((iv) => ({
-    iv,
-    score: scoreIntervention(iv, query),
-  }))
+  const scored = INTERVENTIONS.filter((iv) => isEligibleIntervention(iv, query.data))
+    .map((iv) => ({
+      iv,
+      score: scoreIntervention(iv, query),
+    }))
     .filter((s) => s.score > -Infinity)
     .sort((a, b) => b.score - a.score);
 
+  // Fallback: documented, non-spiritual default (stays honest even when
+  // everything is excluded — the UI's exhaustion guard decides what the
+  // user actually sees).
   if (scored.length === 0) return INTERVENTION_BY_ID["close-source"];
   return scored[0].iv;
 }
@@ -44,7 +90,12 @@ export function selectEscalation(
       iv.id === "tell-someone" ||
       iv.id === "shared-space" ||
       iv.id === "exercise-burst"
-  ).filter((iv) => !previousIds.includes(iv.id));
+  )
+    // F5 — same hard eligibility as the normal selection: the escalation
+    // set is non-spiritual today, but the constraint is enforced here too
+    // so the invariant cannot silently break if the set ever changes.
+    .filter((iv) => isEligibleIntervention(iv, query.data))
+    .filter((iv) => !previousIds.includes(iv.id));
   if (escalate.length === 0) return null;
   const scored = escalate
     .map((iv) => ({ iv, score: scoreIntervention(iv, query) }))
@@ -91,10 +142,9 @@ function scoreIntervention(iv: Intervention, query: InterventionQuery): number {
       score += 2;
   }
 
-  // Spiritual interventions only when enabled — handled by caller filtering tags,
-  // but keep a soft guard here too via id allowlist.
-  const spiritualIds = ["wudu", "prayer-2", "dhikr-anchor"];
-  if (spiritualIds.includes(iv.id) && !data.settings.spiritualContent) score -= 12;
+  // Spiritual eligibility is a HARD filter applied before scoring (see
+  // isEligibleIntervention) — no penalty here, no soft path around the
+  // user's explicit setting.
 
   // Personal history: success boosts, failure penalizes (bounded)
   const history = data.interventionLogs.filter((l) => l.interventionId === iv.id);

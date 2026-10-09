@@ -126,7 +126,12 @@ function checkInterventionLog(l: unknown): string | null {
   if (!isObj(l)) return "سجل تدخل غير صالح";
   if (!isStr(l.id) || !isIsoDate(l.ts) || !isStr(l.interventionId))
     return "بيانات ناقصة في سجل التدخلات";
-  if (!isInt(l.riskLevel, 1, 10)) return "درجة حالة غير صالحة في سجل التدخلات";
+  // F4 — riskLevel is OPTIONAL: manual emergency sessions (FAB / QuickGuide /
+  // sidebar / More sheet) carry no user-reported degree. Absent = honest
+  // "no degree reported"; present = still range-checked. null is NOT
+  // allowed (only the undefined absence is).
+  if (l.riskLevel !== undefined && !isInt(l.riskLevel, 1, 10))
+    return "درجة حالة غير صالحة في سجل التدخلات";
   if (!oneOf(IV_SOURCES)(l.source)) return "مصدر غير صالح في سجل التدخلات";
   return null;
 }
@@ -404,7 +409,9 @@ export function validateBackup(json: string): ValidationResult {
     })),
     interventionLogs: (data.interventionLogs as AppData["interventionLogs"]).map((l) => ({
       ...l,
-      riskLevel: n(l.riskLevel),
+      // F4 — preserve the honest absence of a degree (manual sessions)
+      // instead of fabricating one through the legacy converter.
+      riskLevel: l.riskLevel == null ? undefined : n(l.riskLevel),
     })),
     dailyLogs: {
       checkIns: (dl.checkIns as AppData["dailyLogs"]["checkIns"]).map((c) => ({

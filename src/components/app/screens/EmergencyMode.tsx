@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "../Timer";
-import { selectIntervention, selectEscalation } from "@/lib/app/intervention-engine";
+import {
+  selectIntervention,
+  selectEscalation,
+  isEligibleIntervention,
+  ACT_FIRST_FIXED_ACTION_IDS,
+} from "@/lib/app/intervention-engine";
 import { nowIso, uid } from "@/lib/app/helpers";
 import { INTERVENTIONS } from "@/data/app/interventions";
 import { PERSONAL_WHY_REASONS, WORK_SAFE_STEPS, SUPPORT_MESSAGE_TEMPLATES } from "@/data/app/taxonomy";
@@ -51,13 +56,26 @@ export function EmergencyMode() {
   const navigate = useAppStore((s) => s.navigate);
 
   const riskLevel = ctx?.riskLevel ?? 4;
+  // F4 — is `riskLevel` a degree the user actually reported (Urge flow / Home
+  // high-state card), or a protocol intensity from a manual entry (FAB /
+  // QuickGuide / sidebar / More sheet)? The overlay still runs the SAME
+  // protocol either way — the response's strength is untouched — but the
+  // badge and the written log must only ever present a REAL degree.
+  const assessed = ctx?.assessed === true;
   const workSafe = ctx?.workSafe ?? data.userProfile.deviceNeeds === "yes";
   const triggers = ctx?.triggers ?? [];
   // Level 5 = على وشك التصرف — the crisis variant of the overlay.
   const maximum = riskLevel >= 5;
 
   const [step, setStep] = useState(1);
-  const [usedIds, setUsedIds] = useState<string[]>([]);
+  // F3 — the FIXED ACT-FIRST actions the session has already walked the
+  // user through (step 1 = «اقفل المصدر» = close-source; step 2 = «اخرج من
+  // المكان» = leave-room / shared-space) are seeded as USED: step 3's
+  // recommendation must never re-teach an action the user just completed
+  // (the engine deterministically favored exactly these for a browsing-adjacent
+  // context, which made step 3 repeat step 1 verbatim). They also count as
+  // exhausted for the swap loop — they were never candidates on this flow.
+  const [usedIds, setUsedIds] = useState<string[]>([...ACT_FIRST_FIXED_ACTION_IDS]);
   const [escalated, setEscalated] = useState(false);
   const [done, setDone] = useState(false);
   // B — terminal state: no genuinely different candidate remains in this
@@ -67,6 +85,14 @@ export function EmergencyMode() {
   // claims an intervention was performed). Outcome success is written only
   // against this id — never against "whatever log happens to be last".
   const [sessionLogId, setSessionLogId] = useState<string | null>(null);
+  // F2 — time-boxed in-flight guard for the record-minting / step-advancing
+  // CTAs («تم», «تم — الخطوة اللي بعدها»): a double-tap inside the window is
+  // swallowed deterministically (no dependency on commit/effect timing —
+  // dev-mode renders can lag well past a physical double-tap). The window
+  // auto-expires, so a failed or abandoned transition can never leave the
+  // CTA permanently disabled, and a GENUINE later «تم» (e.g. after a swap,
+  // or on the escalated recommendation) is a new intent that logs normally.
+  const advanceGuardAtRef = useRef(0);
 
   const context = {
     alone: true,
@@ -106,7 +132,11 @@ export function EmergencyMode() {
       id,
       ts: nowIso(),
       interventionId: iv.id,
-      riskLevel,
+      // F4 — write the degree ONLY when the user actually reported one.
+      // A manual session's log carries no fabricated number; every
+      // consumer (progress metrics, backup, migration) treats absence as
+      // "no degree reported" — never as 0.
+      riskLevel: assessed ? riskLevel : undefined,
       source: "emergency",
     });
     // D — remember THIS session's log: the only id success/failure may be
@@ -133,6 +163,10 @@ export function EmergencyMode() {
   // logging (swapping is not performing — no history pollution) and let the
   // recomputation above pick a genuinely different candidate. If nothing
   // remains, fall to the terminal state instead of ever repeating one.
+  // F5 — exhaustion agrees with the ENGINE's notion of a candidate
+  // (eligibility: the spiritual gate applies here too — otherwise a
+  // gate-closed user could keep "swapping toward" spiritual ids the engine
+  // would never recommend, and the terminal state would be unreachable).
   const swapIntervention = () => {
     if (step !== 3 || !intervention) return;
     const nextUsed = [...usedIds, intervention.id];
@@ -140,7 +174,9 @@ export function EmergencyMode() {
     const exhausted = escalated
       ? selectEscalation(nextUsed, { riskLevel, triggerIds: triggers, context, data }) ==
           null
-      : !INTERVENTIONS.some((iv) => !nextUsed.includes(iv.id));
+      : !INTERVENTIONS.some(
+          (iv) => isEligibleIntervention(iv, data) && !nextUsed.includes(iv.id)
+        );
     if (exhausted) setTerminal(true);
   };
 
@@ -196,6 +232,7 @@ export function EmergencyMode() {
         <Header
           maximum={maximum}
           riskLevel={riskLevel}
+          assessed={assessed}
           title="مفيش تدخل تاني أعرضه دلوقتي"
         />
         <div className="w-full space-y-6">
@@ -209,7 +246,7 @@ export function EmergencyMode() {
           </div>
           <Button
             size="lg"
-            className="h-16 w-full text-lg font-bold"
+            className="h-auto min-h-16 w-full whitespace-normal py-4 text-lg font-bold"
             data-autofocus
             onClick={() => {
               setTerminal(false);
@@ -285,6 +322,7 @@ export function EmergencyMode() {
           maximum={maximum}
           step={escalated ? 4 : 3}
           riskLevel={riskLevel}
+          assessed={assessed}
           title={escalated ? "تدخل أقوى" : "نفّذ تدخلًا واحدًا"}
         />
         <div className="w-full space-y-4">
@@ -318,9 +356,14 @@ export function EmergencyMode() {
               order — without it, initial focus would land on the timer. */}
           <Button
             size="lg"
-            className="h-14 w-full text-base font-bold"
+            className="h-auto min-h-14 w-full whitespace-normal py-3.5 text-base font-bold"
             data-autofocus
             onClick={() => {
+              // F2 — one «تم» intent → one log: the time-boxed guard swallows
+              // the double-tap window deterministically.
+              const now = Date.now();
+              if (now - advanceGuardAtRef.current < 800) return;
+              advanceGuardAtRef.current = now;
               logUse(intervention);
               setStep(4);
             }}
@@ -357,21 +400,21 @@ export function EmergencyMode() {
       null;
     return (
       <EmergencyFrame maximum={maximum} key="emergency-step4">
-        <Header maximum={maximum} step={4} riskLevel={riskLevel} title="الخطر هدي؟" />
+        <Header maximum={maximum} step={4} riskLevel={riskLevel} assessed={assessed} title="الخطر هدي؟" />
         <div className="w-full space-y-3">
           <Button
             size="lg"
             variant="outline"
-            className="h-16 w-full justify-start gap-3 border-success/50 text-start text-base"
+            className="h-auto min-h-16 w-full justify-start gap-3 whitespace-normal border-success/50 py-4 text-start text-base"
             data-autofocus
             onClick={() => nextFromIntervention(true)}
           >
-            <Check className="size-6 text-success" />
+            <Check className="size-6 shrink-0 text-success" />
             أيوه — هدي
           </Button>
           <Button
             size="lg"
-            className="h-16 w-full justify-start gap-3 text-start text-base whitespace-normal"
+            className="h-auto min-h-16 w-full justify-start gap-3 whitespace-normal py-4 text-start text-base"
             onClick={() => nextFromIntervention(false)}
           >
             <Siren className="size-6 shrink-0" />
@@ -391,15 +434,18 @@ export function EmergencyMode() {
   }
 
   // ————— Steps 1 & 2 —————
-  const step1Text = workSafe
-    ? "اقفل المصدر دلوقتي: التبويب، التطبيق، أو الصفحة — من غير ما تقرا سطر زيادة."
-    : "اقفل المصدر دلوقتي: التبويب، التطبيق، أو الصفحة — من غير ما تقرا سطر زيادة.";
+  // F11 — the old code held a workSafe ternary whose two branches were the
+  // SAME string (a leftover of an abandoned copy variant). The protocol
+  // copy is unconditional; the work-safe specificity comes from the
+  // WORK_SAFE_STEPS list below, not from re-wording the headline.
+  const step1Text =
+    "اقفل المصدر دلوقتي: التبويب، التطبيق، أو الصفحة — من غير ما تقرا سطر زيادة.";
   const step2Text =
     "اخرج من المكان لأي مكان فيه ناس أو حركة — ومش لازم تقول لحد حاجة.";
 
   return (
     <EmergencyFrame maximum={maximum} key={`emergency-step-${step}`}>
-      <Header maximum={maximum} step={step} riskLevel={riskLevel} />
+      <Header maximum={maximum} step={step} riskLevel={riskLevel} assessed={assessed} />
       <div className="w-full space-y-6">
         <div className="rounded-2xl border border-destructive/30 bg-background/60 p-5">
           {step === 1 ? (
@@ -419,9 +465,16 @@ export function EmergencyMode() {
         </div>
         <Button
           size="lg"
-          className="h-16 w-full text-lg font-bold"
+          className="h-auto min-h-16 w-full whitespace-normal py-4 text-lg font-bold"
           data-autofocus
-          onClick={() => setStep(step + 1)}
+          onClick={() => {
+            // F2 — same time-boxed guard: a double-tap advances exactly one
+            // step, never two.
+            const now = Date.now();
+            if (now - advanceGuardAtRef.current < 800) return;
+            advanceGuardAtRef.current = now;
+            setStep(step + 1);
+          }}
         >
           تم
         </Button>
@@ -592,11 +645,14 @@ function Header({
   maximum,
   step,
   riskLevel,
+  assessed,
   title,
 }: {
   maximum: boolean;
   step?: number;
   riskLevel: number;
+  /** F4 — only a user-REPORTED degree earns the «درجة الحالة» badge. */
+  assessed?: boolean;
   title?: string;
 }) {
   return (
@@ -618,9 +674,22 @@ function Header({
           الخطوة {step} من 4
         </div>
       )}
-      <div className="mx-auto w-fit rounded-full bg-destructive/15 px-3.5 py-1 text-xs font-semibold text-destructive">
-        درجة الحالة: {riskLevel} من ٥ {maximum ? "— أزمة" : ""}
-      </div>
+      {/* F4 — the degree badge is EARNED, never fabricated. A real
+          user-reported degree shows as «درجة الحالة: N من 5» (English digits
+          per the two-experiences convention — «5 من 5», never «من ٥»).
+          A manual launch (FAB / QuickGuide / sidebar / More sheet) carries
+          a protocol intensity, NOT a degree: it gets an honest "no
+          assessment" badge — the response's strength is identical either
+          way, and the statistics stay unpolluted. */}
+      {assessed ? (
+        <div className="mx-auto w-fit rounded-full bg-destructive/15 px-3.5 py-1 text-xs font-semibold text-destructive">
+          درجة الحالة: {riskLevel} من 5 {maximum ? "— أزمة" : ""}
+        </div>
+      ) : (
+        <div className="mx-auto w-fit rounded-full bg-destructive/15 px-3.5 py-1 text-xs font-semibold text-destructive">
+          {maximum ? "أقصى استجابة — من غير تقييم" : "استجابة من غير تقييم"}
+        </div>
+      )}
     </div>
   );
 }

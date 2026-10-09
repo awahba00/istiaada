@@ -91,7 +91,9 @@ export function migrateAppDataToScale5(data: AppData): AppData {
     })),
     interventionLogs: (data.interventionLogs ?? []).map((l) => ({
       ...l,
-      riskLevel: n(l.riskLevel),
+      // F4 — manual emergency sessions carry no reported degree; the
+      // migration must preserve that absence instead of mapping it.
+      riskLevel: l.riskLevel == null ? undefined : n(l.riskLevel),
     })),
     dailyLogs: {
       ...data.dailyLogs,

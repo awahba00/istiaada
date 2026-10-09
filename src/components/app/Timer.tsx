@@ -19,26 +19,38 @@ export function Countdown({
   const [remaining, setRemaining] = useState(seconds);
   const [running, setRunning] = useState(autoStart);
   const [done, setDone] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // F11 — the old implementation called setRunning(false), setDone(true) and
+  // onComplete?.() from INSIDE the setRemaining updater. React state
+  // updaters must be PURE: StrictMode double-invokes them, so the callback
+  // could fire twice and the state transitions raced the updater contract.
+  // The ticking updater below is now pure; the completion transitions live
+  // in their own effects, keyed on the state they observe.
   useEffect(() => {
-    if (running && !done) {
-      intervalRef.current = setInterval(() => {
-        setRemaining((r) => {
-          if (r <= 1) {
-            setRunning(false);
-            setDone(true);
-            onComplete?.();
-            return 0;
-          }
-          return r - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [running, done, onComplete]);
+    if (!running || done) return;
+    const id = setInterval(() => {
+      setRemaining((r) => (r <= 1 ? 0 : r - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running, done]);
+
+  // Completion detection: reaching 0 stops the clock and flags done.
+  useEffect(() => {
+    if (remaining !== 0 || done) return;
+    setRunning(false);
+    setDone(true);
+  }, [remaining, done]);
+
+  // onComplete fires exactly once per completion transition. The latest
+  // callback is kept in a ref so parent re-renders (inline arrow functions)
+  // can neither refire it nor keep it stale.
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  });
+  useEffect(() => {
+    if (done) onCompleteRef.current?.();
+  }, [done]);
 
   const mm = Math.floor(remaining / 60);
   const ss = remaining % 60;
