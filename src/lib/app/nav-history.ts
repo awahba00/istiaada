@@ -26,6 +26,23 @@ import { useAppStore, type ScreenId } from "./store";
  * the screen stack. Emergency keeps its ACT-FIRST semantics untouched —
  * Back performs exactly the overlay's own honest exit (stopEmergency only).
  *
+ * Nav-Bar destination switches (bottom tabs, «المزيد» sheet cards, desktop
+ * sidebar — every entry of NAV_ITEMS, all funnelled through AppShell's go()
+ * with navigate(s, "nav")) are NOT drill-downs: the user is choosing where
+ * to BE, not stepping into a child page. Selecting a destination replaces
+ * the current stack position instead of growing the stack, so Back returns
+ * to the logical parent (the home root) — never to a chain of pages the
+ * user already left behind. Selecting «الرئيسية» collapses to the root: the
+ * next Back falls through to the REAL exit (browser history's own behavior
+ * past our root entry — no scripted page closing, no invented exit).
+ * Re-selecting the current destination changes nothing (no duplicates).
+ *
+ * Implementation: entries below a replaced position are not deletable (the
+ * history API can only replace/append), so they are marked "ghosted" for
+ * the session and the Back walk skips them — one history.back() per
+ * popstate hop, walking one step at a time. No history.go(-N), no history
+ * wipe, no entry is ever resurrected: Forward onto a ghost is ignored.
+ *
  * History entries written by this module carry { __istiaada: true, i, ... }.
  * `i` is this session's push counter — it counts contiguously from the root
  * entry, which is what the reload reconciliation relies on.
@@ -45,6 +62,15 @@ interface NavEntryState {
   screen?: ScreenId;
   /** Sentinel entry: the open overlay this history step holds. */
   overlay?: OverlayKind;
+  /**
+   * Nav-Bar collapse marker (screen entries only). 0 = a Back walk from
+   * this entry must land on the ROOT entry (dead intermediates are skipped);
+   * -1 = the walk falls through PAST the root to the real exit (the user
+   * chose «الرئيسية» from the Nav Bar: home is the current destination, so
+   * Back beyond it belongs to the browser, not to old screens). Absent = a
+   * natural entry: Back lands on the physically previous entry.
+   */
+  backTo?: 0 | -1;
 }
 
 interface RegisteredOverlay {
@@ -65,6 +91,11 @@ let seq = 0;
 let current: NavEntryState | null = null;
 // popstate → store write in flight: the subscription must not re-push it.
 let applyingHistory = false;
+// Depths of entries that are permanently dead for Back walking (victims of
+// a Nav-Bar collapse). Entries cannot be deleted from the history stack, so
+// the Back walk skips them one hop at a time; Forward onto one is ignored.
+// Session-only — a reload reconciles everything to the root anyway.
+const ghosted = new Set<number>();
 // Overlays currently open, bottom → top (modal exclusivity keeps this at
 // one entry; nested dialog + confirm-alert is the one real two-entry case).
 const openOverlays: RegisteredOverlay[] = [];
@@ -121,8 +152,52 @@ function screenEntry(screen: ScreenId, i: number): NavEntryState {
   return { __istiaada: true, i, screen };
 }
 
+function navEntry(screen: ScreenId, i: number, backTo: 0 | -1): NavEntryState {
+  return { __istiaada: true, i, screen, backTo };
+}
+
 function overlayEntry(kind: OverlayKind, i: number): NavEntryState {
   return { __istiaada: true, i, overlay: kind };
+}
+
+/**
+ * Pure decision for a Nav-Bar destination switch (exported for tests).
+ * From the root, a destination behaves exactly like a content push (Back
+ * returns to the root naturally — no collapse needed). Above the root, the
+ * current stack position is REPLACED: the destination becomes the only live
+ * step above the root. Choosing «الرئيسية» above the root additionally
+ * means "the current destination IS the root" — the next Back must fall
+ * through to the real exit, which the backTo: -1 marker expresses.
+ */
+export interface NavSwitchPlan {
+  kind: "push" | "collapse";
+  /** Target screen of the switch. */
+  screen: ScreenId;
+  /** Stack position the plan writes (push: the NEW depth; collapse: the slot being replaced). */
+  at: number;
+  /** Collapse marker: 0 → Back walks to the root; -1 → Back falls past the root (home). */
+  backTo: 0 | -1 | undefined;
+  /** Depths that become permanently dead (strictly between root and `at`). */
+  ghosts: number[];
+}
+
+export function planNavSwitch(
+  currentI: number,
+  screen: ScreenId
+): NavSwitchPlan {
+  if (currentI <= 0) {
+    // From the root (or below our entries): a plain push — Back lands on
+    // the root naturally, so no collapse and no markers are needed.
+    return { kind: "push", screen, at: currentI + 1, backTo: undefined, ghosts: [] };
+  }
+  const backTo = screen === "home" ? -1 : 0;
+  const ghosts: number[] = [];
+  for (let k = 1; k < currentI; k++) ghosts.push(k);
+  // An overlay sentinel on top (More sheet → card) needs no special case:
+  // the screen entry simply takes over the sentinel's slot (the overlay's
+  // own close path then finds the slot already handed over — same contract
+  // as the content-push takeover in pushScreenEntry).
+  return { kind: "collapse", screen, at: currentI, backTo, ghosts };
 }
 
 function readState(): NavEntryState | null {
@@ -142,19 +217,114 @@ function readState(): NavEntryState | null {
 function pushScreenEntry(screen: ScreenId) {
   const st = readState();
   if (st && st.overlay) {
+    ghosted.delete(st.i);
     window.history.replaceState(screenEntry(screen, st.i), "");
     seq = st.i;
     current = screenEntry(screen, st.i);
     return;
   }
   seq += 1;
+  // pushState truncates any old forward stack at this depth — a stale
+  // ghost recorded there (from an earlier collapse + walk + forward) is
+  // gone with it. The freshly pushed entry is live by definition.
+  ghosted.delete(seq);
   window.history.pushState(screenEntry(screen, seq), "");
   current = screenEntry(screen, seq);
 }
 
+/**
+ * A Nav-Bar destination switch landed (navigate(s, "nav") — bottom tab,
+ * «المزيد» card, desktop sidebar). The destination takes over the current
+ * stack position (replacing a screen entry OR an overlay sentinel — a
+ * More-sheet hand-off), everything strictly between it and the root dies,
+ * and its backTo marker tells the Back walk where to land:
+ *   - home → backTo -1: the current destination IS the root — the next Back
+ *     falls through past the root to the real exit;
+ *   - anything else → backTo 0: Back walks to the root (home), one logical
+ *     step, skipping the dead intermediates.
+ * From the root itself the switch is a plain push (Back → root naturally).
+ */
+function navSwitchEntry(screen: ScreenId) {
+  const st = readState();
+  const plan = planNavSwitch(st ? st.i : 0, screen);
+  if (plan.kind === "push") {
+    ghosted.delete(plan.at);
+    seq = plan.at;
+    window.history.pushState(screenEntry(screen, seq), "");
+    current = screenEntry(screen, seq);
+    return;
+  }
+  for (const g of plan.ghosts) ghosted.add(g);
+  ghosted.delete(plan.at);
+  window.history.replaceState(navEntry(screen, plan.at, plan.backTo!), "");
+  seq = plan.at;
+  current = navEntry(screen, plan.at, plan.backTo!);
+}
+
+/**
+ * Pure decision for one Back hop (exported for tests). `left` is the entry
+ * the walk is leaving (module `current` — intentionally PRESERVED across
+ * skip hops, which keeps a collapse walk coherent until it ends), `next` the
+ * landed entry (null = we fell outside our own mirrored entries).
+ * `nextIsGhost` = the landed depth is in the session's ghosted set.
+ */
+export type BackHopAction =
+  | "skip" // landed on a dead/stale entry mid-walk — history.back() again, adopt nothing
+  | "exit-silent" // fell out of our entries (real exit in progress) — adopt nothing
+  | "ignore" // Forward onto a dead entry — stay on the current screen
+  | "adopt"; // normal adoption (close overlay / restore screen)
+
+export function backHopAction(
+  left: NavEntryState | null,
+  next: NavEntryState | null,
+  nextIsGhost: boolean
+): BackHopAction {
+  // A walk started by «الرئيسية» from the Nav Bar: fall through PAST the
+  // root — every still-marked entry (the root included) is skipped so the
+  // browser's own Back behavior beyond our root takes over (real exit).
+  if (left && left.backTo === -1) {
+    return next ? "skip" : "exit-silent";
+  }
+  // A walk started by any other Nav-Bar switch: land exactly on the root.
+  if (left && left.backTo === 0) {
+    if (!next) return "exit-silent";
+    return next.i === 0 ? "adopt" : "skip";
+  }
+  // No marker: a dead entry may still be underfoot (a push that landed on
+  // a ghosted position, or a hop whose origin carries no marker).
+  if (next && nextIsGhost) {
+    const backward = left ? next.i < left.i : true;
+    return backward ? "skip" : "ignore";
+  }
+  return "adopt";
+}
+
 function onPop(e: PopStateEvent) {
   const left = current;
-  const next = e.state;
+  const next = isMarked(e.state) ? e.state : null;
+
+  // Nav-Bar collapse walks and ghost hops — decided BEFORE any adoption so
+  // no dead screen ever flashes on the way. `current` (left) is not updated
+  // during skips: the walk's origin entry carries its contract (backTo)
+  // until the walk ends.
+  const hop = backHopAction(left, next, next ? ghosted.has(next.i) : false);
+  if (hop === "skip") {
+    window.history.back();
+    return;
+  }
+  if (hop === "exit-silent") {
+    current = null;
+    seq = 0;
+    return;
+  }
+  if (hop === "ignore") {
+    // Forward onto a dead entry: the physical position moves but the app
+    // stays exactly where it is. Bookkeeping follows the position so a
+    // subsequent Back from here behaves correctly (lands below, adopts).
+    current = next;
+    seq = next ? next.i : 0;
+    return;
+  }
 
   // 1) We LEFT an overlay's sentinel and that overlay is still open → the
   //    user pressed Back while the overlay was on top: close it (it must be
@@ -178,12 +348,12 @@ function onPop(e: PopStateEvent) {
   // 2) Adopt the landed entry and restore the internal screen. Landing on a
   //    sentinel (forward onto an already-closed overlay's ghost) or outside
   //    our mirrored entries applies nothing — the app stays where it is.
-  current = isMarked(next) ? next : null;
-  seq = current ? current.i : 0;
-  if (current && typeof current.screen === "string") {
+  current = next;
+  seq = next ? next.i : 0;
+  if (next && typeof next.screen === "string") {
     applyingHistory = true;
     try {
-      useAppStore.setState({ screen: current.screen });
+      useAppStore.setState({ screen: next.screen });
     } finally {
       applyingHistory = false;
     }
@@ -197,7 +367,12 @@ function onPop(e: PopStateEvent) {
  *     (replaceState) — no ghost entries are created, and Back from the root
  *     keeps the browser's default exit behavior.
  *   - Reload mid-session: the current entry still carries our marker with
- *     its depth `i`; `go(-i)` jumps back to that session's root (always
+ *     its depth `i`; the entry is first NORMALIZED to a plain screen entry
+ *     (any Nav-Bar collapse marker or overlay kind it still carries belonged
+ *     to the previous session and must not re-run its walk on the
+ *     reconciliation popstate — a stale backTo:-1 walk would skip past the
+ *     root and eject the user out of the freshly reloaded app with no Back
+ *     press at all), then `go(-i)` jumps back to that session's root (always
  *     screen "home", which is also where the fresh boot starts — nothing
  *     visibly changes). Every stale entry above becomes forward-only, so
  *     Back never resurrects a ghost screen.
@@ -210,6 +385,10 @@ export function initNavHistory(): () => void {
     booted = true;
     const st = readState();
     if (st && st.i > 0) {
+      // Stale-session hardening: strip the dead walk contract BEFORE the
+      // jump (see the docblock above) so the reconciliation popstate adopts
+      // the root silently instead of falling through past it.
+      window.history.replaceState(screenEntry(st.screen ?? "home", st.i), "");
       window.history.go(-st.i);
     } else if (!st) {
       window.history.replaceState(screenEntry("home", 0), "");
@@ -238,13 +417,29 @@ export function initNavHistory(): () => void {
       return;
     }
     clearFocusedOpen();
-    pushScreenEntry(s.screen);
+    // Nav-Bar destination switch (navigate(s, "nav") from AppShell's go():
+    // bottom tabs, «المزيد» sheet cards, desktop sidebar): the destination
+    // takes over the current stack position — the back stack collapses to
+    // the root instead of growing. Every other screen change (in-content
+    // links, emergency's «حصلت زلّة؟», focus-opens) keeps the drill-down
+    // push: Back returns to the screen it came from. The intent is consumed
+    // on read so it can never leak into a later navigation.
+    const via = s.navVia;
+    if (via === "nav") {
+      // Consume-on-read (the guarded re-entry this triggers sees an
+      // unchanged screen and returns early — the intent cannot leak).
+      useAppStore.setState({ navVia: null });
+      navSwitchEntry(s.screen);
+    } else {
+      pushScreenEntry(s.screen);
+    }
   });
 
   return () => {
     window.removeEventListener("popstate", onPop);
     unsubscribe();
     openOverlays.length = 0;
+    ghosted.clear();
     clearFocusedOpen();
     active = false;
   };
@@ -269,6 +464,7 @@ export function overlayOpened(kind: OverlayKind, close: () => void) {
     if (openOverlays.some((o) => o.kind === st.overlay)) {
       // Genuinely nested (import dialog + its confirm alert): stack on top.
       seq += 1;
+      ghosted.delete(seq);
       window.history.pushState(overlayEntry(kind, seq), "");
     } else {
       // Sequential hand-off in one commit (More sheet → SOS): the previous
@@ -279,6 +475,7 @@ export function overlayOpened(kind: OverlayKind, close: () => void) {
     }
   } else {
     seq += 1;
+    ghosted.delete(seq);
     window.history.pushState(overlayEntry(kind, seq), "");
   }
   current = overlayEntry(kind, seq);

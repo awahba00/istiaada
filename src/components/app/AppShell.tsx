@@ -161,7 +161,11 @@ export function AppShell() {
   const Screen = SCREEN_COMPONENTS[screen];
 
   const go = (s: ScreenId) => {
-    navigate(s);
+    // "nav" marks a Nav-Bar DESTINATION switch (bottom tab, «المزيد» sheet
+    // card, desktop sidebar): nav-history collapses the back stack to the
+    // root instead of pushing another step, so Back never walks pages the
+    // user already left behind (see lib/app/nav-history.ts).
+    navigate(s, "nav");
     setMoreOpen(false);
   };
 

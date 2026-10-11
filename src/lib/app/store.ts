@@ -75,7 +75,18 @@ interface AppStore extends AppData {
   knowledgeFocusOrigin: ScreenId | null;
 
   setHydrated: (v: boolean) => void;
-  navigate: (s: ScreenId) => void;
+  /**
+   * Session-only navigation intent, read by nav-history the instant a
+   * screen change lands: "nav" = the user switched DESTINATION via the
+   * Nav Bar (bottom tabs, «المزيد» sheet cards, desktop sidebar) — the
+   * back stack collapses to the root instead of growing (see
+   * nav-history.ts). Anything else (undefined) = an in-content link —
+   * back returns to the screen it came from, exactly as before. Never
+   * persisted (partialize whitelists data fields only), and consumed on
+   * read so a stale intent can never leak into a later navigation.
+   */
+  navVia: "nav" | null;
+  navigate: (s: ScreenId, via?: "nav") => void;
   openKnowledgeItem: (itemId: string) => void;
   clearKnowledgeFocus: () => void;
   startEmergency: (ctx: EmergencyContext) => void;
@@ -148,13 +159,14 @@ export const useAppStore = create<AppStore>()(
       ...defaultData(),
       hydrated: false,
       screen: "home",
+      navVia: null,
       emergencyActive: false,
       emergencyCtx: null,
       knowledgeFocus: null,
       knowledgeFocusOrigin: null,
 
       setHydrated: (v) => set({ hydrated: v }),
-      navigate: (s) => set({ screen: s }),
+      navigate: (s, via) => set({ screen: s, navVia: via === "nav" ? "nav" : null }),
       // F4 + F4-return — previous-dose direct open: carry the tapped item
       // AND the screen it was tapped from to the Knowledge screen. The
       // Knowledge screen opens the exact item's dialog from its FIRST render
@@ -167,6 +179,7 @@ export const useAppStore = create<AppStore>()(
           knowledgeFocus: itemId,
           knowledgeFocusOrigin: s.screen,
           screen: "knowledge",
+          navVia: null,
         })),
       clearKnowledgeFocus: () =>
         set({ knowledgeFocus: null, knowledgeFocusOrigin: null }),
@@ -316,6 +329,7 @@ export const useAppStore = create<AppStore>()(
           ...defaultData(),
           hydrated: true,
           screen: "home",
+          navVia: null,
           emergencyActive: false,
           emergencyCtx: null,
         }),
