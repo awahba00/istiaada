@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NumberScale, ScreenHeader, ChipMultiSelect, InfoNote } from "../shared";
 import { InterventionCard } from "../InterventionCard";
+import { PriorLessonHint } from "../PriorLessonHint";
 import { calculateRisk, riskColorVar } from "@/lib/app/risk-engine";
 import { selectIntervention } from "@/lib/app/intervention-engine";
+import { findRelevantLesson } from "@/lib/app/lesson-match";
 import { nowIso, uid } from "@/lib/app/helpers";
 import { TRIGGERS, RISK_LEVELS, ANTI_RATIONALIZATION } from "@/data/app/taxonomy";
 import type { Intervention, UrgeCheck as UrgeCheckType } from "@/lib/app/types";
@@ -99,6 +101,20 @@ export function UrgeScreen() {
         context: { alone, lateNight, inBed, browsingStarted, deviceNeededNow },
       }),
     [urge, proximity, control, alone, lateNight, inBed, browsingStarted, deviceNeededNow]
+  );
+
+  // GAP-09 — at most ONE of the user's OWN prior lessons relevant to this
+  // moment (trigger match first, then an exact context equivalent — see
+  // lib/app/lesson-match.ts). Read-only: nothing is ever written back.
+  // Dismissal is session-scoped inside PriorLessonHint, so re-checking the
+  // same urge in this session cannot nag with a lesson already waved off.
+  const priorLesson = useMemo(
+    () =>
+      findRelevantLesson(data, {
+        triggerIds: triggers,
+        context: { lateNight, inBed, alone },
+      }),
+    [data, triggers, lateNight, inBed, alone]
   );
 
   const contextToggles = [
@@ -474,6 +490,12 @@ export function UrgeScreen() {
             >
               فحص جديد
             </Button>
+            {/* GAP-09 — calm contexts only (awareness modes 1–2): the
+                user's own prior lesson sits BELOW the early-signs card as
+                one quiet collapsed line — never above the mode guidance,
+                never on the urgent result screens (see intervention phase
+                for where it appears at 3–4). */}
+            {priorLesson && <PriorLessonHint lesson={priorLesson} />}
           </div>
         )}
 
@@ -641,6 +663,11 @@ export function UrgeScreen() {
         >
           تخطّى — راجع حالتك
         </Button>
+        {/* GAP-09 — the FIRST step is already in motion here (the user is
+            executing the recommended intervention), so the prior lesson
+            may appear BELOW the skip control as a quiet option. It never
+            precedes the intervention card and never gates the flow. */}
+        {priorLesson && <PriorLessonHint lesson={priorLesson} compact />}
       </div>
     );
   }

@@ -194,7 +194,12 @@ export function PreventionScreen() {
             <Input
               value={spLabel}
               onChange={(e) => setSpLabel(e.target.value)}
-              placeholder="شخص تثق به — بيظهر زر اتصاله في التصعيد. لن يُكشف له أي حاجة تلقائيًا؛ الرسائل محايدة خالص."
+              /* Maintenance fix (GAP audit, support-person card): the old
+                 placeholder was the card's explanatory paragraph pasted into
+                 the field — a wall of text inside an input. Now the field
+                 says what to TYPE, discreetly (a real name was never
+                 required). */
+              placeholder="إزاي تناديه؟ (مش لازم اسم حقيقي)"
               className="bg-background text-sm"
             />
             <Input
@@ -216,7 +221,11 @@ export function PreventionScreen() {
                 )
               }
             >
-              {data.supportPerson ? "رقمه (يُخزن محليًا بس)" : "حفظ"}
+              {/* Maintenance fix (GAP audit, support-person card): the old
+                 label showed the PHONE field's placeholder text («رقمه…»)
+                  whenever a person was already saved. One honest verb for
+                  both states — saving is saving. */}
+              حفظ
             </Button>
             {data.supportPerson && (
               <a

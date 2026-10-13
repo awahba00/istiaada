@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Heart,
   LibraryBig,
+  HeartHandshake,
   Settings,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -39,6 +40,7 @@ import {
   ProgressScreen,
   ValuesScreen,
   KnowledgeScreen,
+  HelpScreen,
   SettingsScreen,
 } from "./screens";
 
@@ -58,6 +60,7 @@ export const NAV_ITEMS: {
   { id: "progress", label: "التقدم", desc: "مؤشرات حقيقية من غير نسب زائفة", icon: TrendingUp },
   { id: "values", label: "القيم والروحانيات", desc: "ليه بعمل ده؟", icon: Heart },
   { id: "knowledge", label: "قاعدة المعرفة", desc: "قراءة هادئة — للوقت الهادي", icon: LibraryBig },
+  { id: "help", label: "المساعدة المتخصصة", desc: "إمتى ومنين تطلب مساعدة نفسية", icon: HeartHandshake },
   { id: "settings", label: "الإعدادات", desc: "خصوصيتك وبياناتك", icon: Settings },
 ];
 
@@ -73,6 +76,7 @@ const SCREEN_COMPONENTS: Record<ScreenId, React.ComponentType> = {
   progress: ProgressScreen,
   values: ValuesScreen,
   knowledge: KnowledgeScreen,
+  help: HelpScreen,
   settings: SettingsScreen,
 };
 

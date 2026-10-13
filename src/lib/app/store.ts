@@ -5,6 +5,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { nowIso, uid } from "./helpers";
 import { buildBackupJson, validateBackup } from "./backup";
 import { migrateAppDataToScale5 } from "./scale";
+import { clearLastOpen } from "./return-tracking";
 import type {
   AppData,
   AppSettings,
@@ -33,6 +34,7 @@ export type ScreenId =
   | "progress"
   | "values"
   | "knowledge"
+  | "help"
   | "settings";
 
 export interface EmergencyContext {
@@ -324,7 +326,12 @@ export const useAppStore = create<AppStore>()(
         return { ok: true };
       },
 
-      resetApp: () =>
+      resetApp: () => {
+        // GAP-01 — a full erase is a full erase: the device-local last-open
+        // stamp is usage data (not a preference like text-size), so the
+        // returning-user greeting must never survive it. Storage failures
+        // are swallowed — reset never fails because of it.
+        clearLastOpen();
         set({
           ...defaultData(),
           hydrated: true,
@@ -332,7 +339,8 @@ export const useAppStore = create<AppStore>()(
           navVia: null,
           emergencyActive: false,
           emergencyCtx: null,
-        }),
+        });
+      },
     }),
     {
       name: STORAGE_KEY,

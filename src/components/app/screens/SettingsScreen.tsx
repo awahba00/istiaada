@@ -73,6 +73,7 @@ export function SettingsScreen() {
   const setSettings = useAppStore((s) => s.setSettings);
   const resetApp = useAppStore((s) => s.resetApp);
   const exportData = useAppStore((s) => s.exportData);
+  const navigate = useAppStore((s) => s.navigate);
   const { setTheme } = useTheme();
 
   const [importOpen, setImportOpen] = useState(false);
@@ -346,6 +347,18 @@ export function SettingsScreen() {
               <li key={w}>• {w}</li>
             ))}
           </ul>
+          {/* GAP-02 — disclosure alone is not a path. The indicators above
+              end with "اطلب مساعدة فورًا"; this corridor takes the user
+              from "أحتاج مساعدة" to "أعرف الخطوة الجاية" (verified Egyptian
+              resources, how to find a specialist, and what to do urgently). */}
+          <Button
+            variant="outline"
+            className="h-auto min-h-9 w-full gap-1.5 whitespace-normal"
+            onClick={() => navigate("help")}
+          >
+            <LifeBuoy className="size-4" />
+            افتح ممر المساعدة — إمتى ومنين تبدأ
+          </Button>
           <InfoNote>
             التطبيق ده أداة مساعدة ذاتية سلوكية — مش تشخيص، ولا علاج طبي، ولا بديل عن مختص. طلب المساعدة قوة، مش اعتراف بالفشل.
           </InfoNote>

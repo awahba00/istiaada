@@ -144,9 +144,14 @@ export function ProgressScreen() {
               }
               direction={m.stopTrend === "better" ? "up" : undefined}
             />
+            {/* Maintenance fix (GAP audit, progress tile): the LABEL used to
+                carry the trend copy («أقل من اللي فات ✓») — a claim that was
+                a lie whenever the trend was "worse" or unknown, and a metric
+                with no name. The label is now the metric; the trend stays
+                where it belongs (hint + direction). */}
             <StatTile
-              label="أقل من اللي فات ✓"
-              value={m.relapsePerWeek != null ? `${m.relapsePerWeek}/أسبوع` : "—"}
+              label="زَلّات في الأسبوع"
+              value={m.relapsePerWeek != null ? `${m.relapsePerWeek}` : "—"}
               hint={
                 m.relapseTrend === "better"
                   ? "أقل من السابق ✓"

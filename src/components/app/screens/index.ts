@@ -8,5 +8,6 @@ export { PreventionScreen } from "./PreventionScreen";
 export { ProgressScreen } from "./ProgressScreen";
 export { ValuesScreen } from "./ValuesScreen";
 export { KnowledgeScreen } from "./KnowledgeScreen";
+export { HelpScreen } from "./HelpScreen";
 export { SettingsScreen } from "./SettingsScreen";
 export { EmergencyMode } from "./EmergencyMode";

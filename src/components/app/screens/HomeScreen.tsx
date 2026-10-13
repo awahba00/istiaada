@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { useEmergencyLauncher } from "@/lib/app/emergency-launcher";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { ScreenHeader, StatTile, InfoNote } from "../shared";
 import { currentHomeState } from "@/lib/app/risk-engine";
 import { computeProgress } from "@/lib/app/progress";
 import { selectDailyDose } from "@/lib/app/dose-engine";
+import { evaluateReturn } from "@/lib/app/return-tracking";
+import { findLatestLesson } from "@/lib/app/lesson-match";
 import { dayKey, greeting, occurrenceTime, occurrenceIso } from "@/lib/app/helpers";
 import { cn } from "@/lib/utils";
 import {
@@ -27,6 +29,8 @@ import {
   Users,
   Heart,
   Smartphone,
+  Sunrise,
+  X,
 } from "lucide-react";
 
 /**
@@ -120,11 +124,88 @@ function QuickGuide({ onEmergency }: { onEmergency: () => void }) {
   );
 }
 
+/**
+ * GAP-01 / NEED-030 — the return-after-absence card. One calm card, shown
+ * ONLY when the user just came back after a long absence (threshold 7
+ * days, see lib/app/return-tracking.ts): no explanation demanded, no
+ * absence duration displayed, no recovery record touched. Links to the
+ * next small step (the daily plan) and — only if the user previously
+ * wrote a lesson of their own — offers it as one quiet expandable line.
+ */
+function ReturnCard({ onDismiss }: { onDismiss: () => void }) {
+  const navigate = useAppStore((s) => s.navigate);
+  const data = useAppStore();
+  const latestLesson = useMemo(() => findLatestLesson(data), [data]);
+
+  return (
+    <Card className="border-primary/30 bg-primary/5">
+      <CardContent className="space-y-3 pt-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 font-bold text-primary">
+            <Sunrise className="size-5" />
+            رجعت — المهم النهارده، مش اللي فات.
+          </div>
+          <button
+            type="button"
+            aria-label="إغلاق بطاقة العودة"
+            onClick={onDismiss}
+            className="-mt-1 shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          غيابك محدش بيسأل عن تفسيره هنا — واللي اتعمل قبل كده اتعمل وخلاص.
+          خطوة واحدة النهارده كفاية، وكل حاجة عندك زي ما سيبتها.
+        </p>
+        {latestLesson && (
+          <details className="group rounded-xl border border-primary/20 bg-background/60 px-4 py-2.5">
+            <summary className="flex cursor-pointer select-none items-center justify-between gap-2 text-sm text-muted-foreground [&::-webkit-details-marker]:hidden">
+              <span className="min-w-0">في درس كتبته بنفسك قبل كده — تحب تشوفه؟</span>
+              <ChevronLeft className="size-3.5 shrink-0 text-muted-foreground/70 transition-transform group-open:-rotate-90" />
+            </summary>
+            <div className="mt-2 space-y-1.5 border-t border-primary/15 pt-2 text-sm leading-relaxed">
+              {latestLesson.cutPoint && (
+                <div>
+                  <b className="text-primary">نقطة القطع اللي سجلتها: </b>
+                  <span className="text-muted-foreground">{latestLesson.cutPoint}</span>
+                </div>
+              )}
+              <div>
+                <b className="text-primary">درسك: </b>
+                <span className="text-muted-foreground">{latestLesson.lesson}</span>
+              </div>
+            </div>
+          </details>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => navigate("plan")} className="gap-1.5">
+            <Compass className="size-4" />
+            خد أول خطوة النهارده
+          </Button>
+          <Button variant="ghost" onClick={onDismiss}>
+            كمّل يومي عادي
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function HomeScreen() {
   const data = useAppStore();
   const navigate = useAppStore((s) => s.navigate);
   const launchEmergency = useEmergencyLauncher();
   const startEmergency = useAppStore((s) => s.startEmergency);
+
+  // GAP-01 — evaluated exactly once per app load (Home is the boot screen;
+  // evaluateReturn stamps "now" so re-mounts/reloads can never re-qualify).
+  const [returnQualified, setReturnQualified] = useState(false);
+  const [returnDismissed, setReturnDismissed] = useState(false);
+  useEffect(() => {
+    const res = evaluateReturn();
+    setReturnQualified(res.qualified);
+  }, []);
 
   const lastCheck = data.urgeChecks.length
     ? data.urgeChecks[data.urgeChecks.length - 1]
@@ -196,8 +277,25 @@ export function HomeScreen() {
     <div className="space-y-5">
       <ScreenHeader
         title={greeting()}
-        subtitle={`اليوم ${metrics.daysSinceStart} من رحلتك${metrics.daysSinceLastRelapse != null ? ` — و${metrics.daysSinceLastRelapse} يومًا منذ آخر زَلّة` : ""}`}
+        /* GAP-01 — the day counter stays a JOURNEY number (it never resets);
+            the days-since-last-slip stays context, never a streak to protect
+            or a score to lose: «العدد مش نتيجة» neutralizes the success/failure
+            reading in the app's own vocabulary. */
+        subtitle={`اليوم ${metrics.daysSinceStart} من رحلتك${
+          metrics.daysSinceLastRelapse != null
+            ? ` — و${metrics.daysSinceLastRelapse} يوم من آخر زَلّة، والعدد مش نتيجة.`
+            : ""
+        }`}
       />
+
+      {/* ————— Return after absence (GAP-01) —————
+          Rendered before everything else, but ONLY while no live state
+          banner outranks it (a returning user with a fresh high/post-relapse
+          state needs that state, not a greeting — the absence threshold
+          makes this co-occurrence rare, the guard makes it impossible). */}
+      {returnQualified && !returnDismissed && homeState === "normal" && (
+        <ReturnCard onDismiss={() => setReturnDismissed(true)} />
+      )}
 
       {/* ————— Current state ————— */}
       {homeState === "normal" && (

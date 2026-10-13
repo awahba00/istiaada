@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "../Timer";
@@ -10,6 +10,8 @@ import {
   isEligibleIntervention,
   ACT_FIRST_FIXED_ACTION_IDS,
 } from "@/lib/app/intervention-engine";
+import { findRelevantLesson } from "@/lib/app/lesson-match";
+import { PriorLessonHint } from "../PriorLessonHint";
 import { nowIso, uid } from "@/lib/app/helpers";
 import { INTERVENTIONS } from "@/data/app/interventions";
 import { PERSONAL_WHY_REASONS, WORK_SAFE_STEPS, SUPPORT_MESSAGE_TEMPLATES } from "@/data/app/taxonomy";
@@ -101,6 +103,23 @@ export function EmergencyMode() {
     browsingStarted: riskLevel >= 4,
     deviceNeededNow: workSafe,
   };
+
+  // GAP-09 — the user's own prior lesson, matched against the session's
+  // triggers and the overlay's derived context. Rendered ONLY on the
+  // reassessment step (step 4) and NEVER on the maximum-crisis variant:
+  // at the peak, the immediate intervention stays the only dominant
+  // element; the lesson may join later, in a stage that adds no cognitive
+  // load to the cut itself. Manual launches carry no triggers — the match
+  // then honestly finds nothing (or an exact context equivalent) instead
+  // of fabricating relevance.
+  const priorLesson = useMemo(
+    () =>
+      findRelevantLesson(data, {
+        triggerIds: triggers,
+        context: { lateNight: context.lateNight, alone: context.alone },
+      }),
+    [data, triggers, context.lateNight, context.alone]
+  );
 
   // Pure + cheap engine call — computed directly (no memo needed).
   // B — escalation exhaustion is a real answer now: selectEscalation may
@@ -426,6 +445,12 @@ export function EmergencyMode() {
             words. NOT on the level-5 crisis variant (maximum). */}
         {!maximum && <PersonalWhy />}
 
+        {/* GAP-09 — the reassessment is a LATER stage (the cut steps and
+            the intervention are already behind the user), so one quiet
+            collapsed line of their own prior lesson fits without adding
+            load to any immediate step. Never on the maximum variant. */}
+        {!maximum && priorLesson && <PriorLessonHint lesson={priorLesson} />}
+
         {/* A — honest exit: closes the overlay only (the check stays
             exactly as it was — no fabricated outcome). */}
         <div className="mt-4">{exitControl}</div>
@@ -582,6 +607,16 @@ function EmergencyFrame({
     const target =
       root.querySelector<HTMLElement>("[data-autofocus]") ?? root;
     target.focus();
+    // Maintenance fix (GAP audit, intervention-completion button): focus()
+    // scrolls just ENOUGH to reveal the element — on a tall step (max-
+    // crisis step 3 with the countdown + swap + support sections) the
+    // primary CTA ended up flush with the viewport's bottom edge, inside
+    // the bottom-navigation band / gesture zone. Centering it in the
+    // scrollport guarantees breathing room on every side; when the step
+    // fits the viewport this is a no-op (nothing scrolls).
+    if (target !== root && root.scrollHeight > root.clientHeight) {
+      target.scrollIntoView({ block: "center" });
+    }
 
     // Hide the background shell from focus AND from assistive tech.
     const shell = document.getElementById("app-shell-root");
@@ -634,7 +669,11 @@ function EmergencyFrame({
       <div
         className={`pointer-events-none fixed inset-x-0 top-0 h-1.5 ${maximum ? "bg-destructive" : "bg-destructive/70"}`}
       />
-      <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-5 py-10">
+      {/* Maintenance fix: the bottom padding is safe-area-aware (home
+          indicator / gesture zone) so the last control of a fully-scrolled
+          tall step never sits under the screen edge or the system gesture
+          band. py-10's top padding is unchanged. */}
+      <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-5 pt-10 pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)]">
         {children}
       </div>
     </div>
