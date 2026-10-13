@@ -19,6 +19,11 @@
  *          (center-on-focus + safe-area bottom padding);
  *        - Help corridor: screen registration, Settings + More entries,
  *          verified resources, zero network code;
+ *        - C4c (2026-10-14 mobile-UX + link batch): urgent-first
+ *          hierarchy, collapsed-by-default secondary disclosures,
+ *          full-width emergency tile in the More sheet, and the Case-B
+ *          link outcome (verified Ministry page + unavailability note,
+ *          dead-end platform URL no longer linked).
  *        - store: new ScreenId + reset clears the last-open stamp + the
  *          stamp key stays outside the persisted/backup surface.
  *        - C4b (2026-10-13 per-claim content audit): 16328 = general
@@ -439,10 +444,10 @@ console.log("C — wiring contracts");
   check("screens/index exports HelpScreen", screensIdxSrc.includes('export { HelpScreen }'));
   check("Settings links into the corridor", settingsSrc.includes('navigate("help")'));
   check(
-    "Help page: three sections present",
-    helpSrc.includes("أ. متى أطلب مساعدة متخصصة؟") &&
-      helpSrc.includes("ب. أبدأ البحث عن مختص منين؟") &&
-      helpSrc.includes("ج. محتاج مساعدة عاجلة — أعمل إيه؟")
+    "Help page: three sections present (أ urgent / ب indicators / ج find-a-specialist)",
+    helpSrc.includes("أ. محتاج مساعدة عاجلة — أعمل إيه؟") &&
+      helpSrc.includes("ب. متى أطلب مساعدة متخصصة؟") &&
+      helpSrc.includes("ج. أبدأ البحث عن مختص منين؟")
   );
   check(
     "Help page: self-help limits disclosure (not a diagnosis/treatment/replacement)",
@@ -456,13 +461,15 @@ console.log("C — wiring contracts");
       helpDataSrc.includes('"16023"')
   );
   check(
-    "Help resources: official GSMHAT site link",
-    helpDataSrc.includes("https://mentalhealth.mohp.gov.eg")
+    "Help resources: link = VERIFIED Ministry page about the Secretariat (2026-10-14, Case B); dead-end platform URL no longer linked",
+    helpDataSrc.includes(
+      "https://www.mohp.gov.eg/SectorServices.aspx?Deptcode=4&SectorCode=2"
+    ) && !/url:\s*"https:\/\/mentalhealth/.test(helpDataSrc)
   );
   check(
     "Help resources: verification date + sources documented",
     helpDataSrc.includes("HELP_INFO_VERIFIED_AT") &&
-      helpDataSrc.includes("2026-10-13")
+      helpDataSrc.includes("2026-10-14")
   );
   check(
     "Help page: tel links only — zero network code",
@@ -538,53 +545,51 @@ console.log("C — wiring contracts");
         addictionBlock.includes("16328")
     );
 
-    const bSection = flat(
+    const specialistSection = flat(
       helpSrc.slice(
-        helpSrc.indexOf("ب. أبدأ البحث عن مختص منين؟"),
-        helpSrc.indexOf("ج. محتاج مساعدة عاجلة")
+        helpSrc.indexOf("ج. أبدأ البحث عن مختص منين؟"),
+        helpSrc.indexOf("————— Separate context: substance-addiction path")
       )
     );
     check(
-      "16023: removed from the general find-a-specialist pathway (ب)",
-      !bSection.includes("16023")
+      "16023: removed from the general find-a-specialist pathway (ج)",
+      !specialistSection.includes("16023")
     );
     check(
-      "ب: 16328 bullet = general support + urgent referral, per official description",
-      bSection.includes("خط الدعم النفسي العام 16328") &&
-        bSection.includes("دعم نفسي عام، مش خدمة علاج متخصصة")
+      "ج: 16328 bullet = general support + urgent referral, per official description",
+      specialistSection.includes("خط الدعم النفسي العام 16328") &&
+        specialistSection.includes("دعم نفسي عام، مش خدمة علاج متخصصة")
     );
     check(
-      "ب: honest statement — no verified Egyptian CSBD/PPU specialized service, nothing invented",
-      bSection.includes("مفيش خدمة مصرية موثقة") &&
-        bSection.includes("مش هنختلقلك رقم خدمة")
+      "ج: honest statement — no verified Egyptian CSBD/PPU specialized service, nothing invented",
+      specialistSection.includes("مفيش خدمة مصرية موثقة") &&
+        specialistSection.includes("مش هنختلقلك رقم خدمة")
     );
     check(
-      "ب: routes to a competent clinician + the first-session question",
-      bSection.includes("مختص نفسي كفء") &&
-        bSection.includes("اشتغلت مع حالات زي حالتي قبل")
+      "ج: routes to a competent clinician + the first-session question",
+      specialistSection.includes("مختص نفسي كفء") &&
+        specialistSection.includes("اشتغلت مع حالات زي حالتي قبل")
     );
     check(
-      "ب: blanket confidentiality claim retired (per-resource only)",
-      !bSection.includes("بتعلن السرية ضمن خدمتها")
+      "ج: blanket confidentiality claim retired (per-resource only)",
+      !specialistSection.includes("بتعلن السرية ضمن خدمتها")
     );
 
-    const jSection = flat(
+    const urgentSection = flat(
       helpSrc.slice(
-        helpSrc.indexOf("ج. محتاج مساعدة عاجلة"),
-        helpSrc.indexOf(
-          "————— Separate context: substance-addiction path"
-        )
+        helpSrc.indexOf("أ. محتاج مساعدة عاجلة"),
+        helpSrc.indexOf("ب. متى أطلب مساعدة متخصصة؟")
       )
     );
     check(
-      "16023: NOT inside the urgent card (ج) — the addiction variable is gone from it",
-      !jSection.includes("16023") && !jSection.includes("addiction")
+      "16023: NOT inside the urgent card (أ) — the addiction variable is gone from it",
+      !urgentSection.includes("16023") && !urgentSection.includes("addiction")
     );
     check(
-      "ج: self-harm block keeps the documented general-support line (rendered from HELP_LINES); ambulance and police keep their own blocks",
-      jSection.includes("hotline.numbers") &&
-        jSection.includes("إسعاف") &&
-        jSection.includes("شرطة")
+      "أ: self-harm block keeps the documented general-support line (rendered from HELP_LINES); ambulance and police keep their own blocks",
+      urgentSection.includes("hotline.numbers") &&
+        urgentSection.includes("إسعاف") &&
+        urgentSection.includes("شرطة")
     );
 
     const separateCardIdx = helpSrc.indexOf(
@@ -618,6 +623,48 @@ console.log("C — wiring contracts");
       separateCardSlice.includes("{addiction.limits}") &&
         addictionBlock.includes("مش خط للسلوك الجنسي القهري") &&
         addictionBlock.includes("للدعم النفسي العام: 16328")
+    );
+  }
+
+  // C4c — 2026-10-14 mobile-UX + official-link batch: urgent-first
+  // hierarchy, progressive disclosure, full-width emergency tile, and
+  // the Case-B link outcome.
+  {
+    const idxOf = (s: string) => helpSrc.indexOf(s);
+    check(
+      "Hierarchy: urgent pathway is the FIRST section after the intro (أ → ب → ج)",
+      idxOf("أ. محتاج مساعدة عاجلة — أعمل إيه؟") > -1 &&
+        idxOf("ب. متى أطلب مساعدة متخصصة؟") >
+          idxOf("أ. محتاج مساعدة عاجلة") &&
+        idxOf("ج. أبدأ البحث عن مختص منين؟") >
+          idxOf("ب. متى أطلب مساعدة متخصصة؟")
+    );
+    const urgentCard = helpSrc.slice(
+      idxOf("أ. محتاج مساعدة عاجلة"),
+      idxOf("ب. متى أطلب مساعدة متخصصة؟")
+    );
+    check(
+      "Hierarchy: the 16328 call CTA lives inside the first section (reachable before any guidance)",
+      /href=\{`tel:\$\{n\}`\}/.test(urgentCard)
+    );
+    const disclosures = helpSrc.match(/<HelpDisclosure\b/g) ?? [];
+    check(
+      "Progressive disclosure: exactly 3 secondary sections, collapsed by default (aria-expanded wiring, no defaultOpen)",
+      disclosures.length === 3 &&
+        helpSrc.includes("aria-expanded={open}") &&
+        helpSrc.includes("useState(false)") &&
+        !helpSrc.includes("defaultOpen")
+    );
+    check(
+      "Link outcome: platform-unavailability note is user-facing Arabic (no raw 401 text in the screen)",
+      helpSrc.includes("{PLATFORM_UNAVAILABLE_NOTE}") &&
+        helpDataSrc.includes("مش متاحة") &&
+        !helpSrc.includes("401")
+    );
+    check(
+      "More sheet: emergency tile spans the full grid width (col-span-2 + sm:col-span-3)",
+      /col-span-2[^\n]*sm:col-span-3/.test(shellSrc) &&
+        shellSrc.includes("تدخّل دلوقتي")
     );
   }
 

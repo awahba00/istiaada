@@ -47,8 +47,39 @@
  *       24 ساعة على مدار الأسبوع", "العلاج مجاني و بسرية تامة"
  *       (FDCTA Facebook / Instagram); continuity also confirmed by SIS
  *       (Mar 2026: the hotline keeps working through holidays).
- *   mentalhealth.mohp.gov.eg — GSMHAT directories (hospitals / centers /
- *   clinics / psychiatrists & psychologists), fetched live.
+ *   mentalhealth.mohp.gov.eg — GSMHAT platform: see the 2026-10-14 link
+ *   investigation below (currently 401 for real visitors — no longer
+ *   linked from the UI).
+ *
+ * 2026-10-14 LINK INVESTIGATION (user-reported: the app's Secretariat
+ * website button shows "401 — Unauthorized: Access is denied due to
+ * invalid credentials"):
+ *   * The exact embedded URL at the time was https://mentalhealth.mohp.gov.eg
+ *     (plain <a target="_blank"> — no app-side transformation).
+ *   * mentalhealth.mohp.gov.eg (both "" and "/mental/web/ar"): TCP-level
+ *     connection timeouts on 80/443 from curl AND from a clean Chromium
+ *     context in the test environment — the host is unreachable from
+ *     here, so its current content can NOT be re-verified from this
+ *     environment. The user's own 401 observation is a server-side
+ *     access-control response from the destination (IIS-style page), not
+ *     an app defect.
+ *   * Fallback — https://www.mohp.gov.eg/SectorServices.aspx?Deptcode=4&SectorCode=2
+ *     — VERIFIED 2026-10-14: HTTP 200, no redirect, renders the official
+ *     Ministry of Health page for the General Secretariat of Mental
+ *     Health and Addiction Treatment sector (نبذة عن عمل الأمانة، its
+ *     mandate, Mental Health Law 71/2009, and "18 mental-health and
+ *     addiction-treatment hospitals nationwide"). The server presents a
+ *     valid *.mohp.gov.eg certificate but omits the intermediate; curl
+ *     fails chain building locally while Chromium (AIA fetching) loads
+ *     the page normally.
+ *   * DECISION — Case B: the app no longer links the unreachable
+ *     platform (no apparently-functional button leading to a dead end).
+ *     It links the VERIFIED Ministry page, labeled as official Ministry
+ *     information about the Secretariat — explicitly NOT as an online
+ *     treatment platform; the 16328 phone action stays; a plain-Arabic
+ *     note states the platform is currently unavailable. No invented
+ *     alternative platform, no runtime availability checks, no new
+ *     network code.
  *
  * KNOWN GAPS (deliberately NOT in the UI):
  *   - NO verified Egyptian pathway specialized in compulsive sexual
@@ -60,11 +91,12 @@
  *     beyond 16328/123; stale community listings were rejected.
  *   - No verifiable public price list for outpatient psychiatry clinics;
  *     the UI tells the user to ask about cost when booking.
- *   - The ministry's online therapy platform has no stable public URL we
- *     could verify, so it is described textually (not linked).
+ *   - The ministry's online therapy platform: no stable public URL was
+ *     verifiable before, and the platform host now refuses visitors
+ *     (401) — described textually as unavailable, not linked.
  */
 
-export const HELP_INFO_VERIFIED_AT = "٢٠٢٦/١٠/١٣";
+export const HELP_INFO_VERIFIED_AT = "٢٠٢٦/١٠/١٤";
 
 export interface HelpLine {
   id: string;
@@ -126,12 +158,21 @@ export interface HelpLink {
 
 export const HELP_LINKS: HelpLink[] = [
   {
-    id: "gsmhat-site",
-    title: "موقع الأمانة العامة للصحة النفسية وعلاج الإدمان",
-    url: "https://mentalhealth.mohp.gov.eg",
-    what: "الجهة الحكومية المسؤولة عن خدمات الصحة النفسية في مصر — الموقع فيه أدلة مستشفيات الصحة النفسية الحكومية (٢٠ مستشفى على مستوى الجمهورية) ومراكز وعيادات ومختصين (أطباء نفسيين وأخصائيين).",
+    id: "mohp-secretariat-page",
+    title: "صفحة وزارة الصحة والسكان الرسمية عن الأمانة العامة للصحة النفسية وعلاج الإدمان",
+    url: "https://www.mohp.gov.eg/SectorServices.aspx?Deptcode=4&SectorCode=2",
+    what: "معلومات رسمية من وزارة الصحة والسكان عن الأمانة العامة للصحة النفسية وعلاج الإدمان — دورها واختصاصاتها، ومستشفياتها التابعة (١٨ مستشفى للطب النفسي وعلاج الإدمان على مستوى الجمهورية). دي صفحة معلومات رسمية، مش منصة علاج إلكترونية.",
   },
 ];
+
+/**
+ * Plain-Arabic, honest note about the Secretariat's online platform
+ * being unavailable (user-verified 401 from the destination's own
+ * server). Rendered next to the verified Ministry-page link. No raw
+ * server errors, no invented substitute service.
+ */
+export const PLATFORM_UNAVAILABLE_NOTE =
+  "منصة الأمانة الإلكترونية للصحة النفسية حاليًا مش متاحة — الموقع نفسه بيرفض الدخول (مش من جهازك ولا من التطبيق). صفحة الوزارة الرسمية عن الأمانة اللي تحت شغالة، وخط الدعم النفسي 16328 فوق لسه موجود.";
 
 /**
  * Practical indicators for "when is professional help the right next

@@ -348,13 +348,20 @@ export function AppShell() {
                 <span className="text-2xs leading-snug text-muted-foreground">{item.desc}</span>
               </button>
             ))}
+            {/* Emergency spans the FULL grid width: as the grid's final
+                entry it was a single half-width tile that fell below the
+                sheet's first fold on small phones (measured 291px below
+                the fold at 320×568) — full width keeps it discoverable
+                and comfortable without rearranging any other section.
+                Red identity, icon, copy, and navigation behavior are
+                unchanged. */}
             <button
               type="button"
               onClick={() => {
                 setMoreOpen(false);
                 openEmergency();
               }}
-              className="flex flex-col gap-1.5 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-start"
+              className="col-span-2 flex flex-col gap-1.5 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-start sm:col-span-3"
             >
               <Siren className="size-5 text-destructive" />
               <span className="text-sm font-bold text-destructive">تدخّل دلوقتي</span>
