@@ -50,6 +50,8 @@ import { Siren, Check, Phone, Users, LogOut, ArrowLeft, LifeBuoy } from "lucide-
  *      when reassessment is reached without any step-3 «تم» (now possible via
  *      the terminal path).
  */
+const EMPTY_TRIGGERS: string[] = [];
+
 export function EmergencyMode() {
   const ctx = useAppStore((s) => s.emergencyCtx);
   const data = useAppStore();
@@ -65,7 +67,10 @@ export function EmergencyMode() {
   // badge and the written log must only ever present a REAL degree.
   const assessed = ctx?.assessed === true;
   const workSafe = ctx?.workSafe ?? data.userProfile.deviceNeeds === "yes";
-  const triggers = ctx?.triggers ?? [];
+  // Stable empty-array identity: `?? []` would mint a fresh array every
+  // render, making the priorLesson useMemo deps change identity on each
+  // pass (react-hooks/exhaustive-deps) — same values, wasted recompute.
+  const triggers = ctx?.triggers ?? EMPTY_TRIGGERS;
   // Level 5 = على وشك التصرف — the crisis variant of the overlay.
   const maximum = riskLevel >= 5;
 
@@ -80,6 +85,10 @@ export function EmergencyMode() {
   const [usedIds, setUsedIds] = useState<string[]>([...ACT_FIRST_FIXED_ACTION_IDS]);
   const [escalated, setEscalated] = useState(false);
   const [done, setDone] = useState(false);
+  // B6 — the intervention countdown completed: show the calm, clearly
+  // labeled next action (below the timer). Pure feedback — no outcome is
+  // fabricated, no log is written, the existing step flow is untouched.
+  const [timerCompleted, setTimerCompleted] = useState(false);
   // B — terminal state: no genuinely different candidate remains in this
   // session (swap-exhausted or escalation-exhausted).
   const [terminal, setTerminal] = useState(false);
@@ -362,11 +371,29 @@ export function EmergencyMode() {
             </ol>
             {intervention.durationSec != null && (
               <div className="mt-5 rounded-xl bg-background p-4">
+                {/* B6 — countdown completion is honest feedback: a calm
+                    pointer to the EXISTING next steps («تم» → reassessment),
+                    never a fabricated outcome or an automatic "safe"
+                    classification. role="status" makes the completion
+                    announce itself politely to assistive tech. Reset when
+                    the recommendation changes (keyed remount of the frame
+                    already resets all step-3 state on swap/escalate). */}
                 <Countdown
                   seconds={intervention.durationSec}
                   autoStart={maximum}
-                  onComplete={() => undefined}
+                  onComplete={() => setTimerCompleted(true)}
                 />
+                {timerCompleted && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="mt-3 rounded-lg bg-primary/10 p-3 text-sm leading-relaxed text-foreground"
+                  >
+                    وقت التدخل خلص. خلّصت الخطوات اللي تنفعك؟ اضغط «تم — الخطوة
+                    اللي بعدها» تحت عشان نعيد تقييم الوضع. لسه في نصها؟ خد
+                    وقتك — مفيش استعجال، والتقييم مستنيك.
+                  </div>
+                )}
               </div>
             )}
           </div>

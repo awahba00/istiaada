@@ -17,7 +17,13 @@ function AlertDialog({
   // uncontrolled variant (trigger-only, e.g. the destructive confirm in
   // Settings) keeps the previous behavior.
   const closeRef = React.useRef(onOpenChange)
-  closeRef.current = onOpenChange
+  // Latest-ref sync moved into an effect (react-hooks/refs): writing a ref
+  // during render is flagged by the hooks lint. The sentinel callback reads
+  // closeRef.current at INVOCATION time (popstate — long after this commit),
+  // so a post-commit sync is behaviorally identical.
+  React.useEffect(() => {
+    closeRef.current = onOpenChange
+  })
   React.useEffect(() => {
     if (open)
       overlayOpened("alert-dialog", () => closeRef.current?.(false))

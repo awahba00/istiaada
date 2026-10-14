@@ -157,10 +157,19 @@ export interface SupportPerson {
 export interface AppSettings {
   dailyDoseEnabled: boolean;
   spiritualContent: boolean;
-  preferredDoseTime: string; // "morning" | "afternoon" | "evening" | ""
-  postRelapseSupport: boolean;
+  /**
+   * D3 — DEPRECATED, no consumer. Kept as optional for backward
+   * compatibility with old persisted states and old backups (the import
+   * validator still accepts them; see docs in backup.ts). New state and
+   * new exports simply omit them.
+   */
+  /** @deprecated Never read by any engine or screen. */
+  preferredDoseTime?: string; // "morning" | "afternoon" | "evening" | ""
+  /** @deprecated Never read by any engine or screen. */
+  postRelapseSupport?: boolean;
+  /** @deprecated Never read by any engine or screen (no reminder engine exists by design). */
+  notificationsEnabled?: boolean;
   theme: "dark" | "light";
-  notificationsEnabled: boolean;
 }
 
 export interface AppData {

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScreenHeader, InfoNote, ChipMultiSelect } from "../shared";
 import { PERSONAL_WHY_REASONS, SPIRITUAL_PRACTICES, SPIRITUAL_DISCLAIMER } from "@/data/app/taxonomy";
+import { VALUES_DRAFT_KEY } from "@/lib/app/erase";
 import { Heart, Save, Moon, Star, Compass } from "lucide-react";
 
 export function ValuesScreen() {
@@ -165,9 +166,10 @@ export function ValuesScreen() {
  * Values draft — persisted to its own localStorage key (I6) so meaningful
  * user input never disappears on navigation/reload. Kept OUTSIDE the main
  * app state on purpose: it is a scratchpad, not app data, so it neither
- * bloats backups nor changes the backup schema.
+ * bloats backups nor changes the backup schema. The key lives in erase.ts
+ * (A1): a full erase removes it together with all other user-authored
+ * device-local content.
  */
-const VALUES_DRAFT_KEY = "istiaada-values-draft-v1";
 
 function ValuesDraft() {
   const [values, setValues] = useState<{ value: string; sentence: string }[]>(() => {

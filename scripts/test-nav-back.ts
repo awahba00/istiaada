@@ -136,9 +136,9 @@ console.log("B — planNavSwitch: collapse plan");
 console.log("C — backHopAction: walk decisions");
 {
   const screenEntry = (i: number, screen: ScreenId, backTo?: 0 | -1) =>
-    ({ __istiaada: true, i, screen, ...(backTo !== undefined ? { backTo } : {}) });
+    ({ __istiaada: true as const, i, screen, ...(backTo !== undefined ? { backTo } : {}) });
   const overlayEntry = (i: number, overlay: string) =>
-    ({ __istiaada: true, i, overlay });
+    ({ __istiaada: true as const, i, overlay });
 
   // Home collapse walk: skip every marked entry (the ROOT included) so the
   // browser's own Back beyond our root takes over; fall-out ends silently.

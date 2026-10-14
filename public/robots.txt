@@ -1,14 +1,6 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# A4 — deliberately not indexable. A device-local, single-user tool has no
+# product value in public search indexes, and the app's own metadata carries
+# noindex as well. (This reduces visibility; it does NOT protect local data
+# from someone with access to the device — see README, Privacy section.)
 User-agent: *
-Allow: /
+Disallow: /

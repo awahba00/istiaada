@@ -1,0 +1,35 @@
+# C4 — quality gates on every pull request and push to main.
+# No secrets, no services, no telemetry: the app is client-side and
+# local-first, so the pipeline only installs (frozen lockfile), then runs
+# the repository's own commands — the same ones a developer runs locally.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Application type check (src/)
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Regression tests
+        run: bun run test
+
+      - name: Production build (type-checked, standalone)
+        run: bun run build

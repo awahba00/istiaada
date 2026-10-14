@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -79,6 +79,18 @@ export function Onboarding() {
 
   const total = 8;
   const inWizard = step >= 0;
+
+  // B4 — every step change starts the user at the TOP of the new question
+  // (mirrors the app shell's F2 scroll reset). Without it, advancing while
+  // scrolled deep lands the new step mid-page — its content adjacent to
+  // the sticky footer and its title off-screen above.
+  const prevStepRef = useRef(step);
+  useEffect(() => {
+    if (prevStepRef.current !== step) {
+      prevStepRef.current = step;
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [step]);
   const canNext = useMemo(() => {
     switch (step) {
       case 0:
@@ -185,7 +197,12 @@ export function Onboarding() {
         </div>
       )}
 
-      <div className="flex-1">
+      {/* B4 — pb-32 on the scrollable options area: defensive clearance so
+          the last option can always be scrolled clear of the sticky footer,
+          including wrapped footer buttons at large text sizes and
+          viewport-height variance (dvh/keyboard) on real devices. The
+          footer itself keeps its purpose and position. */}
+      <div className="flex-1 pb-32">
         {step === 0 && (
           <StepWrap
             title="إنت بتستخدم التطبيق ليه؟"

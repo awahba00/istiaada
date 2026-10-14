@@ -17,7 +17,13 @@ function Dialog({
   // before it can leave the app. Uncontrolled dialogs (no `open` prop) keep
   // the previous behavior — there is no external close handle for them.
   const closeRef = React.useRef(onOpenChange)
-  closeRef.current = onOpenChange
+  // Latest-ref sync moved into an effect (react-hooks/refs): writing a ref
+  // during render is flagged by the hooks lint. The sentinel callback reads
+  // closeRef.current at INVOCATION time (popstate — long after this commit),
+  // so a post-commit sync is behaviorally identical.
+  React.useEffect(() => {
+    closeRef.current = onOpenChange
+  })
   React.useEffect(() => {
     if (open) overlayOpened("dialog", () => closeRef.current?.(false))
     else overlayClosedViaUI("dialog")

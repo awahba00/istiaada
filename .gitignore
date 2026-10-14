@@ -51,4 +51,5 @@ prompt
 
 server.log
 # Skills directory
-/skills/
+/skills/# D1 — runtime process ids are machine state, never version control
+.zscripts/*.pid

@@ -115,10 +115,28 @@ function HelpDisclosure({
 export function HelpScreen() {
   const supportPerson = useAppStore((s) => s.supportPerson);
 
-  const hotline = HELP_LINES.find((l) => l.id === "gsmhat-hotline")!;
-  const ambulance = HELP_LINES.find((l) => l.id === "ambulance")!;
-  const police = HELP_LINES.find((l) => l.id === "police")!;
-  const addiction = HELP_LINES.find((l) => l.id === "addiction-fund")!;
+  // B2 — safe resolution: a renamed, missing, or empty hotline entry must
+  // never blank out the whole help screen (the old non-null assertions
+  // crashed the render on any data drift). Missing entries simply don't
+  // render their card; the always-honest limits footer lists whatever IS
+  // configured, and the verified-link + platform-note blocks below are
+  // content-constant (never data-dependent).
+  const hotline = HELP_LINES.find(
+    (l) => l.id === "gsmhat-hotline" && l.numbers.length > 0
+  ) ?? null;
+  const ambulance = HELP_LINES.find(
+    (l) => l.id === "ambulance" && l.numbers.length > 0
+  ) ?? null;
+  const police = HELP_LINES.find(
+    (l) => l.id === "police" && l.numbers.length > 0
+  ) ?? null;
+  const addiction = HELP_LINES.find(
+    (l) => l.id === "addiction-fund" && l.numbers.length > 0
+  ) ?? null;
+  // The resource this screen exists for — when even it is unavailable the
+  // screen still renders: the verified Ministry link + honest platform note
+  // stay reachable instead of a blank crash.
+  const primaryHotlineMissing = !hotline;
 
   const [openTypes, setOpenTypes] = useState(false);
   const [openQuestions, setOpenQuestions] = useState(false);
@@ -143,6 +161,19 @@ export function HelpScreen() {
             أ. محتاج مساعدة عاجلة — أعمل إيه؟
           </div>
 
+          {/* B2 — graceful fallback: the psychological-support line entry
+              itself is unavailable (renamed/missing) → say so honestly and
+              keep the emergency + verified-link pathways reachable instead
+              of crashing the whole screen. */}
+          {primaryHotlineMissing && (
+            <div className="rounded-2xl border border-dashed border-border p-4 text-sm leading-relaxed text-muted-foreground">
+              خط الدعم النفسي مش متاح في النسخة دي — لو في خطر فوري استخدم
+              إسعاف الطوارئ تحت، وصفحة وزارة الصحة الرسمية (تحت في القسم
+              الثالث) فيها آخر أرقام الأمانة العامة للصحة النفسية.
+            </div>
+          )}
+
+          {hotline && (
           <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
             <div className="font-bold text-destructive">
               لو في أفكار لإيذاء النفس دلوقتي:
@@ -167,11 +198,12 @@ export function HelpScreen() {
               {hotline.title} — {hotline.hours}، {hotline.cost}.
             </p>
           </div>
+          )}
 
           <div className="rounded-2xl border border-destructive/30 bg-background/60 p-4">
             <div className="font-bold">لو في خطر فوري على حياة:</div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {ambulance.numbers.map((n) => (
+              {ambulance?.numbers.map((n) => (
                 <a
                   key={n}
                   href={`tel:${n}`}
@@ -180,7 +212,7 @@ export function HelpScreen() {
                   إسعاف <span dir="ltr" className="tnum">{n}</span>
                 </a>
               ))}
-              {police.numbers.map((n) => (
+              {police?.numbers.map((n) => (
                 <a
                   key={n}
                   href={`tel:${n}`}
@@ -382,7 +414,9 @@ export function HelpScreen() {
           list (ج) and never inside the urgent card (أ). Its services are
           documented for SUBSTANCE addiction, so it is offered only for
           users whose struggle also includes substances. */}
-      {addiction && (
+      {/* addiction resolver already filters empty numbers; the render-site
+          guard keeps the crash-proof property locally explicit. */}
+      {addiction && addiction.numbers.length > 0 && (
         <Card>
           <CardContent className="space-y-3 pt-5">
             <div className="flex items-center gap-2 font-bold">

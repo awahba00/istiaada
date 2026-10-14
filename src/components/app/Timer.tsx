@@ -18,14 +18,23 @@ export function Countdown({
 }) {
   const [remaining, setRemaining] = useState(seconds);
   const [running, setRunning] = useState(autoStart);
-  const [done, setDone] = useState(false);
 
-  // F11 — the old implementation called setRunning(false), setDone(true) and
-  // onComplete?.() from INSIDE the setRemaining updater. React state
-  // updaters must be PURE: StrictMode double-invokes them, so the callback
-  // could fire twice and the state transitions raced the updater contract.
-  // The ticking updater below is now pure; the completion transitions live
-  // in their own effects, keyed on the state they observe.
+  // Completion is DERIVED from remaining === 0 (B6/lint restructure): the
+  // tick is the only thing that drives remaining to 0, and `done` is
+  // therefore always consistent with the displayed clock — no completion
+  // effect racing setState (the old pattern the react-hooks
+  // set-state-in-effect rule rightly flags; F11's purity fix predates it).
+  // Behavior contract preserved exactly:
+  //   - reaching 0 stops the clock (the interval effect keys on done);
+  //   - the reset button keeps `running=false` (shows «ابدأ»);
+  //   - the restart-after-done button ALSO sets running=false — identical
+  //     to the old completion path where the transition effect turned
+  //     running off before done was cleared;
+  //   - a seconds===0 initial mount completes instantly (same as before).
+  const done = remaining === 0;
+
+  // The ticking updater stays pure (F11): decrement only, never a
+  // side-effect inside the updater.
   useEffect(() => {
     if (!running || done) return;
     const id = setInterval(() => {
@@ -34,16 +43,10 @@ export function Countdown({
     return () => clearInterval(id);
   }, [running, done]);
 
-  // Completion detection: reaching 0 stops the clock and flags done.
-  useEffect(() => {
-    if (remaining !== 0 || done) return;
-    setRunning(false);
-    setDone(true);
-  }, [remaining, done]);
-
-  // onComplete fires exactly once per completion transition. The latest
-  // callback is kept in a ref so parent re-renders (inline arrow functions)
-  // can neither refire it nor keep it stale.
+  // onComplete fires exactly once per completion transition (mount included
+  // when seconds === 0). The latest callback is kept in a ref so parent
+  // re-renders (inline arrow functions) can neither refire it nor keep it
+  // stale.
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -139,7 +142,6 @@ export function Countdown({
               onClick={() => {
                 setRemaining(seconds);
                 setRunning(false);
-                setDone(false);
               }}
               className="gap-1.5"
               aria-label="إعادة"
@@ -154,7 +156,7 @@ export function Countdown({
             variant="outline"
             onClick={() => {
               setRemaining(seconds);
-              setDone(false);
+              setRunning(false);
             }}
             className="gap-1.5"
           >

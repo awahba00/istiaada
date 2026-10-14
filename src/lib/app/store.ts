@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { nowIso, uid } from "./helpers";
 import { buildBackupJson, validateBackup } from "./backup";
 import { migrateAppDataToScale5 } from "./scale";
-import { clearLastOpen } from "./return-tracking";
+import { eraseAllDeviceLocalUserData, type EraseReport } from "./erase";
 import type {
   AppData,
   AppSettings,
@@ -120,7 +120,12 @@ interface AppStore extends AppData {
 
   exportData: () => string;
   importData: (json: string) => { ok: boolean; error?: string };
-  resetApp: () => void;
+  /**
+   * Full erase. Returns an honest report: ok === false means at least one
+   * device-local user-content key could NOT be removed (storage failure) —
+   * callers must surface that failure instead of claiming success.
+   */
+  resetApp: () => EraseReport;
 }
 
 function defaultData(): AppData {
@@ -147,10 +152,11 @@ function defaultData(): AppData {
     settings: {
       dailyDoseEnabled: true,
       spiritualContent: false,
-      preferredDoseTime: "morning",
-      postRelapseSupport: true,
       theme: "dark",
-      notificationsEnabled: false,
+      // D3 — preferredDoseTime / postRelapseSupport / notificationsEnabled
+      // are deprecated and intentionally NOT written for new state: no
+      // engine or screen consumes them. Old persisted values and old
+      // backups still import fine (validator accepts their presence).
     },
   };
 }
@@ -326,12 +332,17 @@ export const useAppStore = create<AppStore>()(
         return { ok: true };
       },
 
+      /**
+       * A1 — a full erase is a full erase. Beyond resetting the zustand
+       * state (this `set`), the device-local user-content keys OUTSIDE the
+       * state are removed via the allowlist in erase.ts: the values-draft
+       * scratchpad (free text) and the last-open stamp. Display/a11y
+       * preferences (text size, theme) deliberately survive — the erase
+       * confirmation says so. Storage failures are RETURNED, never
+       * swallowed: the caller reports them honestly.
+       */
       resetApp: () => {
-        // GAP-01 — a full erase is a full erase: the device-local last-open
-        // stamp is usage data (not a preference like text-size), so the
-        // returning-user greeting must never survive it. Storage failures
-        // are swallowed — reset never fails because of it.
-        clearLastOpen();
+        const report = eraseAllDeviceLocalUserData();
         set({
           ...defaultData(),
           hydrated: true,
@@ -340,6 +351,7 @@ export const useAppStore = create<AppStore>()(
           emergencyActive: false,
           emergencyCtx: null,
         });
+        return report;
       },
     }),
     {

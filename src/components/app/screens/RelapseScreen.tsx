@@ -27,7 +27,6 @@ import {
 } from "../shared";
 import {
   nowIso,
-  uid,
   dayKey,
   arabicDate,
   dayKeyDate,

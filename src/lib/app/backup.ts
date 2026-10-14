@@ -18,6 +18,29 @@ export const ACCEPTED_APP_IDS = [APP_ID, "masar"];
 /** Structural version of the backup envelope. Bump on breaking changes. */
 export const BACKUP_SCHEMA_VERSION = 1;
 /**
+ * B3 — one shared sanity cap for backup content (UTF-8 bytes). The file
+ * picker path has always checked File.size against it; the paste path now
+ * enforces the SAME limit BEFORE any expensive parsing, and validateBackup
+ * itself re-checks so every entry point (preview, import, future callers)
+ * gets the identical guard. 20MB is orders of magnitude above any real
+ * backup (a year of heavy use is ~100KB) — anything larger is not a
+ * legitimate backup.
+ */
+export const MAX_BACKUP_BYTES = 20 * 1024 * 1024;
+
+/** UTF-8 byte length of a string (the same unit File.size measures). */
+export function backupByteLength(text: string): number {
+  return new TextEncoder().encode(text).length;
+}
+
+/** Size gate shared by every import path; Arabic error when over the cap. */
+export function backupTooLargeError(text: string): string | null {
+  if (backupByteLength(text) > MAX_BACKUP_BYTES) {
+    return "المحتوى كبير جدًا (أكتر من ٢٠ ميجابايت) — ومش نسخة احتياطية سليمة.";
+  }
+  return null;
+}
+/**
  * Human-facing application version (shown in Settings, written to backups).
  * 2.2.0 is the first version writing the 1–5 self-report scale — imports use
  * it to distinguish old 1–10 backups from new ones (see isLegacyScaleBackup).
@@ -272,6 +295,12 @@ function isLegacyScaleBackup(parsed: Record<string, unknown>, data: Record<strin
 /* ————— main validation ————— */
 
 export function validateBackup(json: string): ValidationResult {
+  // B3 — the size gate runs BEFORE JSON.parse: oversized pasted content is
+  // rejected without the expensive parse, and (importData calls this before
+  // touching state) a rejection can never partially mutate anything.
+  const tooLarge = backupTooLargeError(json);
+  if (tooLarge) return { ok: false, error: tooLarge };
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
@@ -351,7 +380,7 @@ export function validateBackup(json: string): ValidationResult {
     return { ok: false, error: "سجلات الزلّة والوقاية غير صالحة في النسخة." };
   }
 
-  let err: string | null =
+  const err: string | null =
     arrEvery(data.urgeChecks, checkUrgeCheck) ??
     arrEvery(data.interventionLogs, checkInterventionLog) ??
     arrEvery(data.relapseEvents, checkRelapseEvent) ??
@@ -371,10 +400,17 @@ export function validateBackup(json: string): ValidationResult {
     !isObj(st) ||
     !isBool(st.dailyDoseEnabled) ||
     !isBool(st.spiritualContent) ||
-    !isBool(st.postRelapseSupport) ||
-    !isBool(st.notificationsEnabled) ||
-    !oneOf(THEMES)(st.theme) ||
-    !isStr(st.preferredDoseTime)
+    !oneOf(THEMES)(st.theme)
+  ) {
+    return { ok: false, error: "الإعدادات غير صالحة في النسخة." };
+  }
+  // D3 — the three deprecated fields are OPTIONAL: present-and-typed is
+  // accepted (old backups), absent is accepted (new exports). Either way
+  // they are inert — nothing consumes them.
+  if (
+    (st.preferredDoseTime !== undefined && !isStr(st.preferredDoseTime)) ||
+    (st.postRelapseSupport !== undefined && !isBool(st.postRelapseSupport)) ||
+    (st.notificationsEnabled !== undefined && !isBool(st.notificationsEnabled))
   ) {
     return { ok: false, error: "الإعدادات غير صالحة في النسخة." };
   }
@@ -429,10 +465,12 @@ export function validateBackup(json: string): ValidationResult {
     settings: {
       dailyDoseEnabled: st.dailyDoseEnabled,
       spiritualContent: st.spiritualContent,
-      preferredDoseTime: st.preferredDoseTime,
-      postRelapseSupport: st.postRelapseSupport,
       theme: st.theme,
-      notificationsEnabled: st.notificationsEnabled,
+      // D3 — deprecated fields: carried over ONLY when the backup has
+      // them (old backups import verbatim); new exports omit them.
+      ...(isStr(st.preferredDoseTime) ? { preferredDoseTime: st.preferredDoseTime } : {}),
+      ...(isBool(st.postRelapseSupport) ? { postRelapseSupport: st.postRelapseSupport } : {}),
+      ...(isBool(st.notificationsEnabled) ? { notificationsEnabled: st.notificationsEnabled } : {}),
     },
   };
 

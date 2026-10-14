@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
-import { validateBackup, type BackupSummary } from "@/lib/app/backup";
+import { validateBackup, MAX_BACKUP_BYTES, type BackupSummary } from "@/lib/app/backup";
 import { arabicDateTime } from "@/lib/app/helpers";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Upload, FileJson, Check, AlertTriangle, ClipboardPaste } from "lucide-react";
 
-const MAX_BACKUP_BYTES = 20 * 1024 * 1024; // 20MB sanity cap
+// B3 — MAX_BACKUP_BYTES now lives in backup.ts so the file path and the
+// paste path (via validateBackup's own size gate) enforce the SAME limit.
 
 /**
  * RestoreBackup — shared, self-contained restore-from-JSON flow.

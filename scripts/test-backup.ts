@@ -10,7 +10,7 @@ import {
   anyLegacyScaleValue,
   migrateAppDataToScale5,
 } from "../src/lib/app/scale";
-import type { AppData } from "../src/lib/app/types";
+import type { AppData, RelapseEvent } from "../src/lib/app/types";
 
 const validData: AppData = {
   version: 1,
@@ -352,7 +352,7 @@ if (r15f.ok) {
 
 // ————— 16. Phase 2B.2: slip/relapse classification + behaviors fields —————
 console.log("== relapse classification + behaviors ==");
-const baseRel = {
+const baseRel: RelapseEvent = {
   id: "rel-1",
   ts: "2026-01-03T21:00:00.000Z",
   timeToStop: "minutes",
@@ -451,7 +451,7 @@ const r16g = validateBackup(
 check("duplicate behaviors rejected", !r16g.ok);
 
 // 16h. round-trip: export → import preserves the new fields
-const dataWithFields = {
+const dataWithFields: AppData = {
   ...validData,
   relapseEvents: [
     { ...baseRel, reviewed: true, classification: "relapse", behaviors: ["masturbation"] },

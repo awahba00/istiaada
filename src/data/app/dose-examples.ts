@@ -2,7 +2,7 @@
  * Daily Dose Examples — approved content. DO NOT EDIT THE EXAMPLE TEXT.
  *
  * Source of truth (approved, immutable):
- *   daily-dose-examples-final-generic-object-cleanup-dd016-targeted-language-fix-fixed(2)(1).md
+ *   docs/dose-examples.md
  *   148 approved Examples, DD-001 → DD-148.
  *
  * Mapping key: Stable ID (KnowledgeItem.id) — never array position, title,

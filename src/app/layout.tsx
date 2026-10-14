@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "@/components/ui/toaster";
 
 const appArabic = IBM_Plex_Sans_Arabic({
   weight: ["300", "400", "500", "600", "700"],
@@ -12,13 +11,21 @@ const appArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "تطبيق مساعدة ذاتية سلوكية لاستعادة التحكم: لاحظ، افهم، اقطع السلسلة، اتعلّم، وابنِ حياة أحسن. شغال محليًا على جهازك — من غير حسابات ولا خوادم.",
-  description:
-    "تطبيق مساعدة ذاتية سلوكية لاستعادة التحكم: لاحظ، افهم، اقطع السلسلة، اتعلّم، وابنِ حياة أحسن. شغال محليًا على جهازك — من غير حسابات ولا خوادم.",
+  // A4 — privacy-sensitive metadata: the browser tab / history / PWA label
+  // shows only the concise app name. The app's purpose is NOT part of any
+  // surface a bystander can see (the visible in-app brand and copy are
+  // unchanged). The old title was a full sentence describing the app's
+  // recovery purpose — that sentence lived in tabs, history and task
+  // switchers on shared devices.
+  title: "استعادة",
+  description: "أداة شخصية بتشتغل محليًا على جهازك بالكامل.",
   applicationName: "استعادة",
-  keywords: ["استعادة التحكم", "مساعدة ذاتية", "سلوك", "عادات", "خصوصية"],
-  // «حلقة العودة» favicon — same mark as the in-app brand, badge form
-  // (served from /public; PNG metadata-route files crash Turbopack builds).
+  // A4 — public search indexing has no product value for a device-local,
+  // single-user tool; noindex + robots.txt keep it out of indexes. Honest
+  // limitation (documented in the README): this reduces visibility, it does
+  // NOT protect local storage from someone with access to the device or
+  // browser profile.
+  robots: { index: false, follow: false, nocache: true },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -26,6 +33,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -67,7 +75,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster />
         </ThemeProvider>
       </body>
     </html>

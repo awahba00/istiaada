@@ -12,7 +12,7 @@ import { dayKey, arabicDate } from "@/lib/app/helpers";
 import { forecastFromCheckIn } from "@/lib/app/progress";
 import { TRIGGERS } from "@/data/app/taxonomy";
 import type { EveningCheckIn } from "@/lib/app/types";
-import { ListChecks, Moon, Sun, Zap, ShieldAlert, ChevronLeft, Save } from "lucide-react";
+import { ListChecks, Moon, Sun, Zap, ShieldAlert, Save } from "lucide-react";
 
 const BODY_CHOICES = ["يوم صعب؟ أربع ركائز بس — يكفي", "مشي ٢٠ دقيقة", "تمرين منزلي", "تمرين رياضي", "دراجة/جري", "تمدد"];
 
@@ -93,13 +93,13 @@ export function PlanScreen() {
       {
         id: "attention",
         title: "الانتباه: جلسة تركيز",
-        body: "لا استخدام بلا هدف · الهاتف برا السرير · مراجعة سريعة لحاجزاتك",
+        body: "جلسة تركيز واحدة عميقة على مهمتك: صامتة، من غير مقاطعات، والهاتف بعيد",
         modes: ["standard", "extra"],
       },
       {
         id: "digital",
         title: "نظافة رقمية",
-        body: "لا استخدام بلا هدف · الهاتف خارج السرير · مراجعة سريعة لحاجزاتك",
+        body: "راجع حاجزاتك الرقمية: فلاتر المحتوى، أماكن استخدام الهاتف، وقفل التصفح المتأخر",
         modes: ["standard", "extra"],
       },
       {
@@ -111,7 +111,7 @@ export function PlanScreen() {
       {
         id: "night",
         title: "بروتوكول الليل",
-        body: "إضافة لليوم الإضافي بس — جلسة بناء إضافية",
+        body: "قبل النوم: الهاتف برا السرير، آخر ٣٠ دقيقة من غير شاشات، ونوم كفاية",
         modes: ["standard", "extra"],
       },
       {
@@ -473,12 +473,24 @@ function EveningCheckInDialog({
           {step === 2 && (
             <>
               <div className="text-sm font-semibold">
-                ظروف بكرة (علشان نستعد — مش علشان نتنبأ)
+                {/* B1 — the header says what the step measures (today's
+                    conditions) and why (preparing for tomorrow — the
+                    forecast copy in progress.ts reads "توقّع بكرة" from
+                    these values). Not a prediction; preparation. */}
+                ظروف النهارده (علشان نستعد لبكرة — مش تنبؤ)
               </div>
-              {condScale("مثال: الهاتف يبيت برا الغرفة…", sleepQuality, setSleepQuality, "سيئ جدًا", "ممتاز")}
-              {condScale("ظروف الغد (لتوقّع الغد — مش تنبؤ، بل استعدادًا)", stress, setStress, "هادئ", "مرتفع جدًا")}
+              {/* B1 — every scale's question now matches ITS OWN field and
+                  endpoints: sleep asks about sleep (bad→excellent), stress
+                  asks about stress (calm→very high), loneliness keeps its
+                  relevant question (connected→isolated), and free time asks
+                  about free time (none→plenty). Stored fields, values and
+                  semantics are unchanged — a label fix, not a data change:
+                  placeholder/section-description strings no longer sit in
+                  rating labels. */}
+              {condScale("إزاي كان نومك الليلة الماضية؟", sleepQuality, setSleepQuality, "سيئ جدًا", "ممتاز")}
+              {condScale("توترك النهارده كان إزاي؟", stress, setStress, "هادئ", "مرتفع جدًا")}
               {condScale("الوحدة اليوم؟", loneliness, setLoneliness, "متصل بالناس", "منعزل")}
-              {condScale("إزاي كان نومك الليلة الماضية؟", freeTime, setFreeTime, "لا يوجد", "كثير جدًا")}
+              {condScale("وقت الفاض اللي كان معاك النهارده؟", freeTime, setFreeTime, "لا يوجد", "كثير جدًا")}
             </>
           )}
         </div>

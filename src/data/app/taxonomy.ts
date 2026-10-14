@@ -257,27 +257,9 @@ export const JOURNEY_STAGES: JourneyStage[] = [
 export const JOURNEY_DISCLAIMER =
   "هذه مراحل تنظيمية للمحتوى والرحلة، لا جدولًا زمنيًا بيولوجيًا مضمونًا للتعافي.";
 
-export const BOREDOM_MENU: {
-  minutes: 5 | 15 | 30;
-  label: string;
-  options: string[];
-}[] = [
-  {
-    minutes: 5,
-    label: "٥ دقائق",
-    options: ["ترتيب المكتب", "غسل الأطباق", "تجهيز مهمة الغد"],
-  },
-  {
-    minutes: 15,
-    label: "١٥ دقيقة",
-    options: ["مشي", "قراءة", "دراسة موضوع صغير", "تمرين خفيف"],
-  },
-  {
-    minutes: 30,
-    label: "٣٠ دقيقة",
-    options: ["تمرين رياضي", "جلسة دراسة مركزة", "العمل على مشروع", "خروج قصير", "نشاط اجتماعي"],
-  },
-];
+// D1 — BOREDOM_MENU removed: dead data with no application consumer (only
+// a historical extraction script read it); the anti-boredom guidance lives
+// in the knowledge bank and the plan's build sections.
 
 export const WORK_SAFE_STEPS: string[] = [
   "أغلق كل التبويبات والتطبيقات غير المتصلة بمهمتك.",

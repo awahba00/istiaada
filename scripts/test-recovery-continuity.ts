@@ -668,10 +668,60 @@ console.log("C — wiring contracts");
     );
   }
 
-  // C5: store — reset clears the stamp; nothing else persisted changed.
+  // C5: store — reset clears every device-local user-content key. A1 moved
+  // the key removal into erase.ts (allowlist-based, honest failure
+  // reporting), so the old source-string contract ("resetApp body calls
+  // clearLastOpen()") pins a stale implementation shape. The contract is
+  // now verified BEHAVIORALLY: the real store runs against the localStorage
+  // shim and must erase the last-open stamp AND the values draft while
+  // keeping the (defaulted) state key and unrelated keys intact.
+  const storeModule = await import("../src/lib/app/store");
+  const useAppStore = storeModule.useAppStore;
+  // store.ts persists via the bare `localStorage` global (zustand); mirror
+  // the shim onto it so the real persistence path writes to the same map.
+  (globalThis as Record<string, unknown>).localStorage = (
+    (globalThis as { window: { localStorage: Storage } }).window.localStorage
+  );
+  shimStore.set("istiaada-last-open-v1", new Date().toISOString());
+  shimStore.set("istiaada-values-draft-v1", JSON.stringify([{ value: "قيمة", sentence: "جملة" }]));
+  shimStore.set("unrelated-third-party-key", "keep me");
+  const resetReport = useAppStore.getState().resetApp();
   check(
-    "resetApp clears the last-open stamp",
-    /resetApp: \(\) => \{[\s\S]*?clearLastOpen\(\);[\s\S]*?\},/.test(storeSrc)
+    "resetApp clears the last-open stamp (and the values draft, and reports success)",
+    resetReport.ok === true &&
+      !shimStore.has("istiaada-last-open-v1") &&
+      !shimStore.has("istiaada-values-draft-v1") &&
+      shimStore.get("unrelated-third-party-key") === "keep me"
+  );
+  check(
+    "resetApp report is honest when storage refuses a removal",
+    (() => {
+      const realRemove = shimStore.delete.bind(shimStore);
+      shimStore.set("istiaada-values-draft-v1", "x");
+      // simulate a storage that throws on remove of ONE key
+      (globalThis as Record<string, unknown>).window = {
+        localStorage: {
+          getItem: (k: string) => (shimStore.has(k) ? shimStore.get(k)! : null),
+          setItem: (k: string, v: string) => void shimStore.set(k, v),
+          removeItem: (k: string) => {
+            if (k === "istiaada-values-draft-v1") throw new Error("refused");
+            realRemove(k);
+          },
+          clear: () => void shimStore.clear(),
+        },
+      };
+      const r2 = useAppStore.getState().resetApp();
+      // restore the normal shim for subsequent checks
+      (globalThis as Record<string, unknown>).window = {
+        localStorage: {
+          getItem: (k: string) => (shimStore.has(k) ? shimStore.get(k)! : null),
+          setItem: (k: string, v: string) => void shimStore.set(k, v),
+          removeItem: (k: string) => void shimStore.delete(k),
+          clear: () => void shimStore.clear(),
+        },
+      };
+      return r2.ok === false && r2.failed.includes("istiaada-values-draft-v1");
+    })()
   );
   check(
     "store: no new persisted AppData fields (backup format untouched)",

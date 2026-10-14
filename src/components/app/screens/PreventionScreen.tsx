@@ -8,12 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScreenHeader, InfoNote, ToggleRow } from "../shared";
+import type { IfThenRule } from "@/lib/app/types";
 import {
   DIGITAL_PROTECTION_GUIDES,
   DIGITAL_PROTECTION_HONESTY,
   SUPPORT_MESSAGE_TEMPLATES,
 } from "@/data/app/taxonomy";
 import { ShieldCheck, Plus, Trash2, Pencil, Phone, Lock, ArrowRight } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function PreventionScreen() {
   const data = useAppStore();
@@ -26,6 +37,11 @@ export function PreventionScreen() {
   const [ifText, setIfText] = useState("");
   const [thenText, setThenText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  // B5 — destructive rule deletion needs the same confirmation pattern as
+  // every other destructive action in the app (Settings erase, import
+  // replace): identify the rule, require an explicit choice, cancel = no
+  // change at all.
+  const [deleteTarget, setDeleteTarget] = useState<IfThenRule | null>(null);
 
   const [spLabel, setSpLabel] = useState(data.supportPerson?.label ?? "");
   const [spPhone, setSpPhone] = useState(data.supportPerson?.phone ?? "");
@@ -124,7 +140,7 @@ export function PreventionScreen() {
                     <button
                       type="button"
                       aria-label="حذف"
-                      onClick={() => deleteRule(r.id)}
+                      onClick={() => setDeleteTarget(r)}
                       className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
                     >
                       <Trash2 className="size-4" />
@@ -256,6 +272,40 @@ export function PreventionScreen() {
           </div>
         </CardContent>
       </Card>
+
+      {/* B5 — delete confirmation: the dialog identifies the exact rule
+          (its إذا/إذن text), cancellation changes nothing, and deletion
+          happens only on the explicit destructive action. Controlled so the
+          Back key closes the dialog first (same hybrid-C pattern as the
+          other destructive dialogs). */}
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>امسح القاعدة دي؟</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">
+              هتمسح قاعدة «إذا {deleteTarget?.ifText} — إذن {deleteTarget?.thenText}»
+              نهائيًا من جهازك. باقي قواعدك مش هتتأثر.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>رجوع</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) deleteRule(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              نعم، امسحها
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Add/edit rule dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>

@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore, type ScreenId } from "@/lib/app/store";
 import { dismissFocusedDialogViaBack, focusOpenAbandoned } from "@/lib/app/nav-history";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader, Chip, EmptyState } from "../shared";

@@ -78,6 +78,13 @@ export function SettingsScreen() {
 
   const [importOpen, setImportOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  // A2 — the privacy gate before any file is created: opening the warning
+  // neither builds a Blob nor touches any data; only «كمّل» proceeds to
+  // downloadExport().
+  const [exportWarnOpen, setExportWarnOpen] = useState(false);
+  // A1 — honest erase feedback: when storage refuses a removal the action
+  // must never be reported as complete.
+  const [eraseFailure, setEraseFailure] = useState<string[] | null>(null);
   // In-app font size (device-local accessibility preference — not part of
   // AppSettings/backup). Applied immediately on click via setTextSize.
   const [textSize, setTextSizeState] = useState<TextSizeId>(getStoredTextSize);
@@ -98,6 +105,13 @@ export function SettingsScreen() {
     a.download = `istiaada-backup-${dayKey()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // A1 — the ONLY erase entry point: runs the allowlist-based full erase and
+  // reports failures honestly instead of assuming success.
+  const onEraseConfirmed = () => {
+    const report = resetApp();
+    setEraseFailure(report.ok ? null : report.failed);
   };
 
   const copyExport = async () => {
@@ -262,10 +276,39 @@ export function SettingsScreen() {
             صدّر نسخة احتياطية بصيغة JSON تقدر تقراها، أو استورد نسختك القديمة على أي جهاز.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="gap-1.5" onClick={downloadExport}>
-              <Download className="size-4" />
-              تصدير البيانات
-            </Button>
+            {/* A2 — the warning dialog gates the download BEFORE any file is
+                created; cancelling creates nothing and changes nothing. */}
+            <AlertDialog open={exportWarnOpen} onOpenChange={setExportWarnOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="gap-1.5">
+                  <Download className="size-4" />
+                  تصدير البيانات
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    قبل ما تنزّل النسخة — اعرف اللي جواها
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="leading-relaxed">
+                    الملف مش متشفّر — أي حد يوصل له يقدر يقراه بالكامل. جواه:
+                    <br />• بيانات شخص الدعم (اسمه اللي كتبته ورقمه) لو مسجل.
+                    <br />• سببك الشخصي وخياراتك من التهيئة.
+                    <br />• سجلات الرغبة والتدخلات، وزلاتك/انتكاساتك بتصنيفها ومراجعاتها ودروسها.
+                    <br />• مراجعاتك المسائية وتأملاتك، وخططك اليومية، وقواعد «إذا… إذن».
+                    <br />
+                    خزّن الملف في مكان آمن، ومتارسلش لأي حد مش قاصده — ومترفعيش
+                    على خدمات تخزين من غير تشفير لو محتواه حساس بالنسبة لك.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>رجوع</AlertDialogCancel>
+                  <AlertDialogAction onClick={downloadExport}>
+                    فاهم — نزّل النسخة
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button variant="outline" className="gap-1.5" onClick={copyExport}>
               <Copy className="size-4" />
               {copied ? "نُسخ ✓" : "نسخ إلى الحافظة"}
@@ -300,6 +343,16 @@ export function SettingsScreen() {
               </DialogContent>
             </Dialog>
           </div>
+          {/* A3 — the clipboard path: the copy itself is user-initiated and
+              stays device-local (the app makes no request); the caveat
+              states the honest OS-level risk without claiming the app
+              transmits anything. */}
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            نسخ الحافظة بينزل نفس محتوى النسخة الاحتياطية (كل اللي فوق). بعض
+            الأنظمة أو إعدادات الأجهزة بتربط الحافظة وتزامنها بين أجهزتك — دي
+            خاصية من نظام التشغيل نفسه، مش إرسال من التطبيق (التطبيق مبيبعت
+            أي حاجة لأي حد). امسح الحافظة لو محتواها حساس بالنسبة لك.
+          </p>
         </CardContent>
       </Card>
 
@@ -307,6 +360,8 @@ export function SettingsScreen() {
       <Card className="border-destructive/30">
         <CardContent className="space-y-3 pt-5">
           <div className="font-bold text-destructive">منطقة الحذر</div>
+          {/* A1 — the confirmation states EXACTLY what is deleted and what
+              remains (display preferences survive, and the dialog says so). */}
           <AlertDialog open={eraseConfirmOpen} onOpenChange={setEraseConfirmOpen}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="h-auto min-h-9 gap-1.5 whitespace-normal">
@@ -316,22 +371,39 @@ export function SettingsScreen() {
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-3xl">
               <AlertDialogHeader>
-                <AlertDialogTitle>مسح كل حاجة نهائيًا؟</AlertDialogTitle>
+                <AlertDialogTitle>امسح كل حاجة نهائيًا؟</AlertDialogTitle>
                 <AlertDialogDescription className="leading-relaxed">
-                  كل بياناتك هتتمسح (فحوصات، مراجعات، خطة، قواعد) من الجهاز ده ومش هتقدر ترجعها. صدّر نسخة احتياطية الأول لو عايز تحافظ عليها.
+                  هيتمسح من الجهاز ده نهائيًا: فحوصات الرغبة والتدخلات، زلاتك
+                  وانتكاساتك ومراجعاتها، مراجعاتك المسائية، خططك اليومية،
+                  قواعد «إذا… إذن»، شخص الدعم، سببك الشخصي، مسودة القيم، وتاريخ
+                  بداية رحلتك — ومش هتقدر ترجعها. اللي هيفضل: المظهر وحجم الخط
+                  بس (تفضيلات عرض مش بيانات). صدّر نسخة احتياطية الأول لو عايز
+                  تحافظ عليها.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>رجوع</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={resetApp}
+                  onClick={onEraseConfirmed}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  نعم، امسح كل شيء
+                  نعم، امسح كل حاجة
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          {/* A1 — never claim a complete erase when storage refused part of
+              it: the failure is surfaced with the exact keys that survived. */}
+          {eraseFailure && (
+            <div
+              role="alert"
+              className="rounded-xl bg-destructive/15 p-3 text-sm leading-relaxed text-destructive"
+            >
+              المسح مش اكتمل بصراحة: جزء من البيانات ({eraseFailure.join("، ")})
+              مارفضش المتصفح يمسحه — جرّب تاني أو امسح بيانات الموقع من إعدادات
+              المتصفح نفسه. متعتبرش البيانات دي ممسوحة.
+            </div>
+          )}
         </CardContent>
       </Card>
 
