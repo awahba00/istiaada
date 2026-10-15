@@ -12,6 +12,7 @@ import { selectDailyDose } from "@/lib/app/dose-engine";
 import { evaluateReturn } from "@/lib/app/return-tracking";
 import { findLatestLesson } from "@/lib/app/lesson-match";
 import { dayKey, greeting, occurrenceTime, occurrenceIso } from "@/lib/app/helpers";
+import { EveningCheckInDialog } from "./PlanScreen";
 import { cn } from "@/lib/utils";
 import {
   Siren,
@@ -30,6 +31,7 @@ import {
   Heart,
   Smartphone,
   Sunrise,
+  Moon,
   X,
 } from "lucide-react";
 
@@ -257,6 +259,15 @@ export function HomeScreen() {
   const dose = useMemo(() => selectDailyDose({ data }), [data]);
   const doseDoneToday = data.dailyLogs.doseLog.some((d) => d.date === dayKey() && d.status === "done");
 
+  // F1 — the evening check-in entry state. EXACTLY the Plan screen's
+  // semantics (same store field, same dayKey() rule): done means a check-in
+  // saved for TODAY's local day — a review saved on a previous day never
+  // marks today done. No new state, no new persistence, no notifications.
+  const saveCheckIn = useAppStore((s) => s.saveCheckIn);
+  const today = dayKey();
+  const checkedInToday = data.dailyLogs.checkIns.some((c) => c.date === today);
+  const todayCheckIn = data.dailyLogs.checkIns.find((c) => c.date === today);
+
   // Stable-state guidance must stay truthful whether the daily dose is on
   // or off — the "what to do now" line adapts instead of commanding a
   // feature the user disabled.
@@ -468,6 +479,48 @@ export function HomeScreen() {
                 <span className="text-xs font-medium">{p.label}</span>
               </button>
             ))}
+          </div>
+          {/* ————— Evening check-in (F1) —————
+              One quiet, state-aware line INSIDE the existing plan card — no
+              new dashboard card, no competition with the state banner or
+              urgent actions above. Direct entry to the SAME dialog the Plan
+              screen uses (imported, not re-implemented): opening it preloads
+              today's saved answers, saving uses the same store action, and a
+              cancelled dialog saves nothing. The row borrows the Plan card's
+              own wording so the two entries read as one feature. */}
+          <div className="mt-3 border-t border-border/60 pt-3">
+            <div
+              className={cn(
+                "flex items-center justify-between gap-3 rounded-xl border p-3",
+                checkedInToday
+                  ? "border-success/40 bg-success/5"
+                  : "border-border bg-background/50"
+              )}
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <Moon
+                  className={cn(
+                    "size-5 shrink-0",
+                    checkedInToday ? "text-success" : "text-primary"
+                  )}
+                />
+                <div className="min-w-0">
+                  <div className="text-sm font-bold leading-snug">
+                    {checkedInToday ? "راجعت يومك النهارده" : "مراجعتك المسائية"}
+                  </div>
+                  <div className="text-xs leading-snug text-muted-foreground">
+                    {checkedInToday
+                      ? "خلصت المراجعة الليلة ✓ — تعدّلها لو حبيت"
+                      : "٥ أسئلة قصيرة + توقّع بكرة"}
+                  </div>
+                </div>
+              </div>
+              <EveningCheckInDialog
+                onSave={saveCheckIn}
+                done={checkedInToday}
+                existing={todayCheckIn}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

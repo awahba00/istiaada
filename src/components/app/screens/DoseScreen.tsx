@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScreenHeader, InfoNote } from "../shared";
 import { selectDailyDose, doseStatusFor } from "@/lib/app/dose-engine";
-import { dayKey, arabicDate, occurrenceTime } from "@/lib/app/helpers";
+import { dayKey, arabicDate, dayKeyDate, occurrenceTime } from "@/lib/app/helpers";
 import { DOSE_EXAMPLES } from "@/data/app/dose-examples";
 import { KNOWLEDGE, CATEGORY_LABELS } from "@/data/app/knowledge";
 import { JOURNEY_STAGES, JOURNEY_DISCLAIMER } from "@/data/app/taxonomy";
@@ -160,7 +160,12 @@ export function DoseScreen() {
                   <div className="min-w-0">
                     <div className="truncate font-medium">{d.item!.title}</div>
                     <div className="text-xs text-muted-foreground">
-                      {d.date} · {CATEGORY_LABELS[d.item!.category]}
+                      {/* F4b — localized like every other date in the app.
+                          dayKeyDate() parses the stored YYYY-MM-DD from LOCAL
+                          components on purpose: `new Date("YYYY-MM-DD")`
+                          would parse as UTC midnight and shift the calendar
+                          day backwards in negative UTC offsets. */}
+                      {arabicDate(dayKeyDate(d.date))} · {CATEGORY_LABELS[d.item!.category]}
                     </div>
                   </div>
                   <span

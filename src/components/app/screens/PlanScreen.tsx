@@ -14,7 +14,18 @@ import { TRIGGERS } from "@/data/app/taxonomy";
 import type { EveningCheckIn } from "@/lib/app/types";
 import { ListChecks, Moon, Sun, Zap, ShieldAlert, Save } from "lucide-react";
 
-const BODY_CHOICES = ["يوم صعب؟ أربع ركائز بس — يكفي", "مشي ٢٠ دقيقة", "تمرين منزلي", "تمرين رياضي", "دراجة/جري", "تمدد"];
+const BODY_CHOICES = [
+  // F3 — a genuine light body activity (was the minimum-mode description,
+  // which is a MODE label, not a movement). Fits first among the escalating
+  // activity ladder below; stored bodyChoice values are free text, so old
+  // saved plans simply display what they saved — no migration, no crash.
+  "حركة خفيفة 5 دقائق",
+  "مشي ٢٠ دقيقة",
+  "تمرين منزلي",
+  "تمرين رياضي",
+  "دراجة/جري",
+  "تمدد",
+];
 
 const MODES = [
   { id: "minimum", label: "الحد الأدنى", desc: "يوم صعب؟ أربع ركائز بس — يكفي" },
@@ -243,7 +254,12 @@ export function PlanScreen() {
   );
 }
 
-function EveningCheckInDialog({
+/* Exported (not duplicated): the Home plan card reuses THIS dialog for the
+ * evening check-in entry — same component, same save action, same edit/
+ * prefill semantics, one implementation. Only one screen is mounted at a
+ * time (AppShell renders the active screen only), so the two usages can
+ * never compete or stack. */
+export function EveningCheckInDialog({
   onSave,
   done,
   existing,

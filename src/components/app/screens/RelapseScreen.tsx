@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/app/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -126,6 +126,46 @@ const continuedLabel = (e: RelapseEvent): string | null => {
   return e.continued ? "أكتر من مرة" : "مرة واحدة";
 };
 
+/* ————— Quick Log required-field feedback (F2) —————
+ *
+ * Pure functions of the draft (no React), exported so behavioral tests
+ * exercise the REAL rules the save button enforces — not a copy of them.
+ * The required set is exactly the pre-existing canSaveQuick logic: behavior,
+ * classification, session length, and Q5 only when it was actually asked
+ * (masturbation among behaviors). Triggers stay optional; the date keeps its
+ * own inline future-date rejection. */
+export interface QuickLogDraft {
+  behaviors: RelapseBehavior[];
+  classification: RelapseClassification | null;
+  time: TimeToStop | null;
+  continued: boolean | null;
+  date: string;
+}
+
+/** The unanswered REQUIRED questions, in the order the form shows them —
+ *  used for the «لسه ناقص» line next to the save action and the «مطلوب»
+ *  badges on the corresponding cards. */
+export function quickLogMissing(d: QuickLogDraft): string[] {
+  const missing: string[] = [];
+  if (d.behaviors.length === 0) missing.push("السلوك اللي حصل");
+  if (d.classification == null) missing.push("وصف اللي حصل");
+  if (d.time == null) missing.push("مدة الجلسة");
+  if (d.behaviors.includes("masturbation") && d.continued == null)
+    missing.push("مرة ولا أكتر؟");
+  return missing;
+}
+
+/** Save gate — unchanged semantics: every required question answered AND a
+ *  valid (today-or-past) occurrence date. */
+export function canSaveQuickLog(d: QuickLogDraft): boolean {
+  return quickLogMissing(d).length === 0 && isPastOrToday(d.date);
+}
+
+/** Arabic enumeration for the «لسه ناقص» line: «أ، وب، وج». */
+export function missingFieldsLabel(missing: string[]): string {
+  return missing.map((m, i) => (i === 0 ? m : `و${m}`)).join("، ");
+}
+
 /** Trigger id → user-facing label (falls back to the raw value for
  *  hand-edited imports that stored labels in event.triggers). */
 const triggerLabel = (id: string): string =>
@@ -142,6 +182,12 @@ export function RelapseScreen() {
   const [view, setView] = useState<View>("main");
   const [stopStep, setStopStep] = useState(0);
   const [relapseId, setRelapseId] = useState<string | null>(null);
+  // F2 — duplicate-tap guard: addRelapseQuick APPENDS an event, and two taps
+  // dispatched in the same frame (a slow/janked phone right after a
+  // difficult moment) would both pass the form guard before React
+  // re-renders the view away — two records from one episode. The ref blocks
+  // re-entry for the rest of this quick-log visit.
+  const quickSaveGuard = useRef(false);
   // A5 — the event pending delete confirmation (null = dialog closed).
   // The trash button only STAGES the event here; deletion happens solely in
   // confirmDelete() so an accidental tap can never remove data directly.
@@ -192,14 +238,25 @@ export function RelapseScreen() {
     setStopStep(0);
   };
 
+  // Every (re)entry to the quick view re-arms the duplicate-tap guard: the
+  // effect runs right after the render that revealed the save button, so it
+  // can never race a real tap — it only clears the way for a NEW log.
+  useEffect(() => {
+    if (view === "quick") quickSaveGuard.current = false;
+  }, [view]);
+
   const finishStopSteps = () => {
     setView("quick");
   };
 
   const saveQuick = () => {
+    // F2 — same-frame double taps must not append twice (guard re-armed on
+    // every quick-view entry above).
+    if (quickSaveGuard.current) return;
     if (qBehaviors.length === 0 || qClassification == null) return;
     // Future occurrence days can never be saved (input max + this guard).
     if (!isPastOrToday(qDate)) return;
+    quickSaveGuard.current = true;
     const id = addRelapseQuick({
       ts: nowIso(),
       // The day the event OCCURRED (the user's selected local calendar day;
@@ -355,12 +412,17 @@ export function RelapseScreen() {
     // Q5 «حصل مرة ولا أكتر؟» is only asked when masturbation is among the
     // logged behaviors — porn-only episodes have no continuation question.
     const asksContinued = qBehaviors.includes("masturbation");
-    const canSaveQuick =
-      qBehaviors.length > 0 &&
-      qClassification != null &&
-      qTime != null &&
-      (!asksContinued || qContinued != null) &&
-      isPastOrToday(qDate);
+    // F2 — the gate is the exported pure function (the exact pre-existing
+    // rules), so the UI's save button and the tests enforce one truth.
+    const draft: QuickLogDraft = {
+      behaviors: qBehaviors,
+      classification: qClassification,
+      time: qTime,
+      continued: qContinued,
+      date: qDate,
+    };
+    const missing = quickLogMissing(draft);
+    const canSaveQuick = canSaveQuickLog(draft);
     return (
       <div className="space-y-5">
         <ScreenHeader
@@ -370,7 +432,18 @@ export function RelapseScreen() {
         />
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">إيه السلوك اللي حصل؟</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-semibold">إيه السلوك اللي حصل؟</div>
+              {/* F2 — a quiet «مطلوب» badge marks the unanswered required
+                  cards, so the user can find what the save action is waiting
+                  for without hunting the long form. It disappears the moment
+                  the question is answered. */}
+              {qBehaviors.length === 0 && (
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                  مطلوب
+                </span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               {BEHAVIOR_OPTIONS.map((o) => (
                 <Chip
@@ -399,7 +472,14 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">إزاي توصف اللي حصل؟</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-semibold">إزاي توصف اللي حصل؟</div>
+              {qClassification == null && (
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                  مطلوب
+                </span>
+              )}
+            </div>
             <div className="space-y-2.5">
               {CLASSIFICATION_OPTIONS.map((o) => (
                 <button
@@ -425,7 +505,15 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">إيه اللي بدأ الموضوع؟</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-semibold">إيه اللي بدأ الموضوع؟</div>
+              {/* F2 — explicitly optional (matching the actual validation:
+                  triggers never block saving) so the user doesn't search for
+                  a «required» trigger that isn't there. */}
+              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-2xs font-medium text-muted-foreground">
+                اختياري
+              </span>
+            </div>
             <ChipMultiSelect
               size="sm"
               options={TRIGGERS.map((t) => ({ id: t.id, label: t.label }))}
@@ -436,7 +524,14 @@ export function RelapseScreen() {
         </Card>
         <Card>
           <CardContent className="space-y-3 pt-5">
-            <div className="text-sm font-semibold">الجلسة استمرت قد إيه؟</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-semibold">الجلسة استمرت قد إيه؟</div>
+              {qTime == null && (
+                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                  مطلوب
+                </span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               {TIME_TO_STOP_QUICK_OPTIONS.map((o) => (
                 <Chip
@@ -452,7 +547,14 @@ export function RelapseScreen() {
         {asksContinued && (
           <Card>
             <CardContent className="space-y-3 pt-5">
-              <div className="text-sm font-semibold">حصل مرة ولا أكتر؟</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-semibold">حصل مرة ولا أكتر؟</div>
+                {qContinued == null && (
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                    مطلوب
+                  </span>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Chip label="مرة واحدة" selected={qContinued === false} onClick={() => setQContinued(false)} />
                 <Chip label="أكتر من مرة" selected={qContinued === true} onClick={() => setQContinued(true)} />
@@ -505,9 +607,32 @@ export function RelapseScreen() {
             )}
           </CardContent>
         </Card>
-        <Button size="lg" className="w-full" onClick={saveQuick} disabled={!canSaveQuick}>
-          احفظ وكمل
-        </Button>
+        {/* F2 — sticky primary action (the Urge flow's chrome-aware pattern:
+            offset = safe-area + the rem-scaled bottom-nav band, so it never
+            covers the nav; the gradient band passes taps through to any
+            choices beneath it — only the button takes taps). While the form
+            is incomplete the line above the button names the EXACT missing
+            required fields, so the disabled state is explained instead of
+            silent. The invalid-date case keeps its own inline red hint in
+            the date card. */}
+        <div className="pointer-events-none sticky bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-10 -mx-1 bg-gradient-to-t from-background from-60% to-transparent px-1 pt-4 pb-1 lg:bottom-6">
+          {!canSaveQuick && missing.length > 0 && (
+            <p
+              className="mb-1.5 text-center text-xs leading-relaxed text-muted-foreground"
+              aria-live="polite"
+            >
+              لسه ناقص: {missingFieldsLabel(missing)}
+            </p>
+          )}
+          <Button
+            size="lg"
+            className="pointer-events-auto h-auto min-h-14 w-full whitespace-normal text-base font-bold shadow-xl"
+            onClick={saveQuick}
+            disabled={!canSaveQuick}
+          >
+            احفظ وكمل
+          </Button>
+        </div>
       </div>
     );
   }
